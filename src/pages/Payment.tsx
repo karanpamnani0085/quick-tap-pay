@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { NFC, Check, CreditCard, Lock, ChevronRight, MoreHorizontal } from "lucide-react";
-import { useToast } from "@/components/ui/toast";
+import { Nfc, Check, CreditCard, Lock, ChevronRight, MoreHorizontal } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 const Payment = () => {
   const { toast } = useToast();
@@ -103,7 +102,7 @@ const Payment = () => {
                       </div>
                     ) : (
                       <div className="flex flex-col items-center">
-                        <NFC size={64} className={`${isTapping ? 'text-rfid-teal animate-tap' : 'text-gray-400'}`} />
+                        <Nfc size={64} className={`${isTapping ? 'text-rfid-teal animate-tap' : 'text-gray-400'}`} />
                         <span className={`mt-2 font-medium ${isTapping ? 'text-rfid-teal' : 'text-gray-500'}`}>
                           {isTapping ? 'Reading...' : 'Tap to Pay'}
                         </span>

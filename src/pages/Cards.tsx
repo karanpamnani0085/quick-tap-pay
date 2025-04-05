@@ -1,12 +1,11 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Plus, Tag, Edit, Trash2, NFC } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { CreditCard, Plus, Tag, Edit, Trash2, Nfc } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 interface RFIDCard {
   id: string;
@@ -19,7 +18,6 @@ interface RFIDCard {
 }
 
 const Cards = () => {
-  const { toast } = useToast();
   const [cards, setCards] = useState<RFIDCard[]>([
     {
       id: "card-1",
@@ -53,7 +51,7 @@ const Cards = () => {
   const [newCard, setNewCard] = useState({
     name: "",
     cardNumber: "",
-    type: "Card" as const
+    type: "Card" as "Card" | "Tag" | "Wristband"
   });
 
   const handleAddCard = () => {
@@ -107,7 +105,7 @@ const Cards = () => {
     switch (type) {
       case "Card": return <CreditCard className="h-6 w-6 text-rfid-teal" />;
       case "Tag": return <Tag className="h-6 w-6 text-rfid-teal" />;
-      case "Wristband": return <NFC className="h-6 w-6 text-rfid-teal" />;
+      case "Wristband": return <Nfc className="h-6 w-6 text-rfid-teal" />;
       default: return <CreditCard className="h-6 w-6 text-rfid-teal" />;
     }
   };
