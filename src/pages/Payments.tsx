@@ -1,10 +1,9 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, CreditCard, Search, ArrowDown, ArrowUp, Filter, Download } from "lucide-react";
+import { Calendar as CalendarIcon, CreditCard, Search, ArrowDown, ArrowUp, Filter, Download, IndianRupee } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 
@@ -29,7 +28,7 @@ const Payments = () => {
     {
       id: "txn-1",
       description: "Coffee Shop Purchase",
-      amount: 4.75,
+      amount: 275.00,
       type: "payment",
       status: "completed",
       date: "2025-04-04T09:15:32Z",
@@ -41,7 +40,7 @@ const Payments = () => {
     {
       id: "txn-2",
       description: "Transportation Fare",
-      amount: 2.50,
+      amount: 150.00,
       type: "payment",
       status: "completed",
       date: "2025-04-03T17:45:12Z",
@@ -53,7 +52,7 @@ const Payments = () => {
     {
       id: "txn-3",
       description: "Card Top Up",
-      amount: 50.00,
+      amount: 3000.00,
       type: "topup",
       status: "completed",
       date: "2025-04-02T14:33:22Z",
@@ -63,7 +62,7 @@ const Payments = () => {
     {
       id: "txn-4",
       description: "Grocery Purchase",
-      amount: 32.45,
+      amount: 1845.50,
       type: "payment",
       status: "completed",
       date: "2025-04-01T18:22:43Z",
@@ -75,7 +74,7 @@ const Payments = () => {
     {
       id: "txn-5",
       description: "Card Top Up",
-      amount: 25.00,
+      amount: 1500.00,
       type: "topup",
       status: "completed",
       date: "2025-03-30T11:17:35Z",
@@ -85,7 +84,7 @@ const Payments = () => {
     {
       id: "txn-6",
       description: "Pharmacy Purchase",
-      amount: 18.99,
+      amount: 999.50,
       type: "payment",
       status: "completed",
       date: "2025-03-29T13:42:09Z",
@@ -97,7 +96,7 @@ const Payments = () => {
     {
       id: "txn-7",
       description: "Vending Machine",
-      amount: 2.00,
+      amount: 120.00,
       type: "payment",
       status: "failed",
       date: "2025-03-28T15:11:27Z",
@@ -110,7 +109,6 @@ const Payments = () => {
 
   const filteredTransactions = transactions
     .filter(txn => {
-      // Search filter
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch = 
         txn.description.toLowerCase().includes(searchLower) ||
@@ -118,7 +116,6 @@ const Payments = () => {
         txn.merchant?.toLowerCase().includes(searchLower) ||
         txn.location?.toLowerCase().includes(searchLower);
       
-      // Date filter
       const txnDate = new Date(txn.date);
       const today = new Date();
       const yesterday = new Date();
@@ -154,6 +151,31 @@ const Payments = () => {
       <ArrowDown className="h-5 w-5 text-green-500" />;
   };
 
+  const handleExportTransactions = () => {
+    const csvContent = [
+      ["Date", "Description", "Amount", "Type", "Status", "Card", "Merchant", "Location"].join(","),
+      ...filteredTransactions.map(txn => [
+        new Date(txn.date).toLocaleDateString(),
+        txn.description,
+        txn.amount.toFixed(2),
+        txn.type,
+        txn.status,
+        txn.cardName,
+        txn.merchant || "",
+        txn.location || ""
+      ].join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `transactions-${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="container mx-auto py-10 px-4">
       <div className="flex justify-between items-center mb-8">
@@ -161,7 +183,7 @@ const Payments = () => {
           <h1 className="text-3xl font-bold text-rfid-blue">Payment History</h1>
           <p className="text-gray-600 mt-2">View and manage your transaction history</p>
         </div>
-        <Button className="bg-rfid-teal hover:bg-rfid-blue">
+        <Button className="bg-rfid-teal hover:bg-rfid-blue" onClick={handleExportTransactions}>
           <Download className="mr-2 h-4 w-4" /> Export
         </Button>
       </div>
@@ -254,8 +276,10 @@ const Payments = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className={`text-lg font-bold ${txn.type === "payment" ? "text-red-600" : "text-green-600"}`}>
-                          {txn.type === "payment" ? "-" : "+"} ${txn.amount.toFixed(2)}
+                        <div className={`text-lg font-bold ${txn.type === "payment" ? "text-red-600" : "text-green-600"} flex items-center justify-end`}>
+                          {txn.type === "payment" ? "-" : "+"} 
+                          <IndianRupee size={16} className="mx-1" />
+                          {txn.amount.toFixed(2)}
                         </div>
                         <Badge 
                           variant="outline" 
@@ -287,19 +311,47 @@ const Payments = () => {
         </TabsContent>
         
         <TabsContent value="payments">
-          {/* Similar content as 'all' tab but filtered for payment transactions */}
           <Card>
-            <CardContent className="pt-6">
-              <p>View of payment transactions only will be shown here.</p>
+            <CardContent className="pt-6 py-6">
+              <div className="space-y-4">
+                {filteredTransactions
+                  .filter(txn => txn.type === "payment")
+                  .map(txn => (
+                    <div key={txn.id} className="flex justify-between items-center p-4 border-b">
+                      <div>
+                        <h4 className="font-medium">{txn.description}</h4>
+                        <p className="text-sm text-gray-500">{formatDate(txn.date)}</p>
+                      </div>
+                      <div className="flex items-center text-red-600 font-bold">
+                        <IndianRupee size={16} className="mr-1" />
+                        {txn.amount.toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
         
         <TabsContent value="topups">
-          {/* Similar content as 'all' tab but filtered for top up transactions */}
           <Card>
-            <CardContent className="pt-6">
-              <p>View of top up transactions only will be shown here.</p>
+            <CardContent className="pt-6 py-6">
+              <div className="space-y-4">
+                {filteredTransactions
+                  .filter(txn => txn.type === "topup")
+                  .map(txn => (
+                    <div key={txn.id} className="flex justify-between items-center p-4 border-b">
+                      <div>
+                        <h4 className="font-medium">{txn.description}</h4>
+                        <p className="text-sm text-gray-500">{formatDate(txn.date)}</p>
+                      </div>
+                      <div className="flex items-center text-green-600 font-bold">
+                        <IndianRupee size={16} className="mr-1" />
+                        {txn.amount.toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

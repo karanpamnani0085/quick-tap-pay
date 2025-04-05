@@ -8,7 +8,8 @@ import {
   Nfc, 
   Shield, 
   LineChart, 
-  AlertTriangle 
+  AlertTriangle,
+  IndianRupee 
 } from "lucide-react";
 
 const Index = () => {
@@ -35,65 +36,77 @@ const Index = () => {
       <section className="mb-12">
         <h2 className="text-2xl font-bold text-center text-rfid-blue mb-8">Features</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6 pb-6 text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rfid-teal/10 mb-4">
-                <CreditCard className="h-6 w-6 text-rfid-teal" />
-              </div>
-              <h3 className="text-lg font-medium text-rfid-blue mb-2">Card Management</h3>
-              <p className="text-gray-600">Register and manage multiple RFID cards or tags in one place</p>
-            </CardContent>
-          </Card>
+          <Link to="/cards" className="block hover:no-underline">
+            <Card className="hover:shadow-lg transition-shadow h-full">
+              <CardContent className="pt-6 pb-6 text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rfid-teal/10 mb-4">
+                  <CreditCard className="h-6 w-6 text-rfid-teal" />
+                </div>
+                <h3 className="text-lg font-medium text-rfid-blue mb-2">Card Management</h3>
+                <p className="text-gray-600">Register and manage multiple RFID cards or tags in one place</p>
+              </CardContent>
+            </Card>
+          </Link>
           
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6 pb-6 text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rfid-teal/10 mb-4">
-                <Nfc className="h-6 w-6 text-rfid-teal" />
-              </div>
-              <h3 className="text-lg font-medium text-rfid-blue mb-2">Tap to Pay</h3>
-              <p className="text-gray-600">Make quick contactless payments using your RFID devices</p>
-            </CardContent>
-          </Card>
+          <Link to="/payment" className="block hover:no-underline">
+            <Card className="hover:shadow-lg transition-shadow h-full">
+              <CardContent className="pt-6 pb-6 text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rfid-teal/10 mb-4">
+                  <Nfc className="h-6 w-6 text-rfid-teal" />
+                </div>
+                <h3 className="text-lg font-medium text-rfid-blue mb-2">Tap to Pay</h3>
+                <p className="text-gray-600">Make quick contactless payments using your RFID devices</p>
+              </CardContent>
+            </Card>
+          </Link>
           
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6 pb-6 text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rfid-teal/10 mb-4">
-                <Wallet className="h-6 w-6 text-rfid-teal" />
-              </div>
-              <h3 className="text-lg font-medium text-rfid-blue mb-2">Digital Wallet</h3>
-              <p className="text-gray-600">Easily top up your balance and track your spending</p>
-            </CardContent>
-          </Card>
+          <Link to="/cards" className="block hover:no-underline">
+            <Card className="hover:shadow-lg transition-shadow h-full">
+              <CardContent className="pt-6 pb-6 text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rfid-teal/10 mb-4">
+                  <Wallet className="h-6 w-6 text-rfid-teal" />
+                </div>
+                <h3 className="text-lg font-medium text-rfid-blue mb-2">Digital Wallet</h3>
+                <p className="text-gray-600">Easily top up your balance and track your spending</p>
+              </CardContent>
+            </Card>
+          </Link>
           
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6 pb-6 text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rfid-teal/10 mb-4">
-                <AlertTriangle className="h-6 w-6 text-rfid-teal" />
-              </div>
-              <h3 className="text-lg font-medium text-rfid-blue mb-2">Fraud Detection</h3>
-              <p className="text-gray-600">AI-powered detection of unusual spending patterns and potential fraud</p>
-            </CardContent>
-          </Card>
+          <Link to="/ai-insights" className="block hover:no-underline">
+            <Card className="hover:shadow-lg transition-shadow h-full">
+              <CardContent className="pt-6 pb-6 text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rfid-teal/10 mb-4">
+                  <AlertTriangle className="h-6 w-6 text-rfid-teal" />
+                </div>
+                <h3 className="text-lg font-medium text-rfid-blue mb-2">Fraud Detection</h3>
+                <p className="text-gray-600">AI-powered detection of unusual spending patterns and potential fraud</p>
+              </CardContent>
+            </Card>
+          </Link>
           
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6 pb-6 text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rfid-teal/10 mb-4">
-                <LineChart className="h-6 w-6 text-rfid-teal" />
-              </div>
-              <h3 className="text-lg font-medium text-rfid-blue mb-2">Spending Analytics</h3>
-              <p className="text-gray-600">Smart insights about your spending habits and patterns</p>
-            </CardContent>
-          </Card>
+          <Link to="/payments" className="block hover:no-underline">
+            <Card className="hover:shadow-lg transition-shadow h-full">
+              <CardContent className="pt-6 pb-6 text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rfid-teal/10 mb-4">
+                  <LineChart className="h-6 w-6 text-rfid-teal" />
+                </div>
+                <h3 className="text-lg font-medium text-rfid-blue mb-2">Spending Analytics</h3>
+                <p className="text-gray-600">Smart insights about your spending habits and patterns</p>
+              </CardContent>
+            </Card>
+          </Link>
           
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6 pb-6 text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rfid-teal/10 mb-4">
-                <Shield className="h-6 w-6 text-rfid-teal" />
-              </div>
-              <h3 className="text-lg font-medium text-rfid-blue mb-2">Secure Transactions</h3>
-              <p className="text-gray-600">Advanced security measures to protect your payment data</p>
-            </CardContent>
-          </Card>
+          <Link to="/account" className="block hover:no-underline">
+            <Card className="hover:shadow-lg transition-shadow h-full">
+              <CardContent className="pt-6 pb-6 text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rfid-teal/10 mb-4">
+                  <Shield className="h-6 w-6 text-rfid-teal" />
+                </div>
+                <h3 className="text-lg font-medium text-rfid-blue mb-2">Secure Transactions</h3>
+                <p className="text-gray-600">Advanced security measures to protect your payment data</p>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       </section>
     </div>

@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Shield, CreditCard, Wallet, Lock, Zap, RefreshCw } from "lucide-react";
+import { Shield, CreditCard, Wallet, Lock, Zap, RefreshCw, IndianRupee } from "lucide-react";
 
 const Home = () => {
   return (
@@ -22,15 +22,17 @@ const Home = () => {
                 <Button 
                   size="lg" 
                   className="bg-white text-rfid-blue hover:bg-gray-100"
+                  asChild
                 >
-                  Get Started
+                  <Link to="/cards">Get Started</Link>
                 </Button>
                 <Button 
                   size="lg" 
                   variant="outline" 
                   className="border-white text-white hover:bg-white hover:text-rfid-blue"
+                  asChild
                 >
-                  Learn More
+                  <Link to="/ai-insights">Learn More</Link>
                 </Button>
               </div>
             </div>
@@ -38,7 +40,12 @@ const Home = () => {
               <div className="relative">
                 <div className="w-64 h-64 md:w-80 md:h-80 bg-white rounded-full flex items-center justify-center tap-area active">
                   <div className="w-48 h-48 md:w-60 md:h-60 bg-rfid-teal rounded-full flex items-center justify-center">
-                    <CreditCard size={100} className="text-white" />
+                    <div className="flex flex-col items-center">
+                      <CreditCard size={80} className="text-white" />
+                      <div className="mt-4 flex items-center text-white text-2xl font-bold">
+                        <IndianRupee size={24} className="mr-1" /> Pay
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -58,35 +65,41 @@ const Home = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
-                <Zap size={32} className="text-rfid-teal" />
+            <Link to="/payment" className="block hover:no-underline">
+              <div className="bg-white p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow">
+                <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Zap size={32} className="text-rfid-teal" />
+                </div>
+                <h3 className="text-xl font-bold text-rfid-blue mb-3">Lightning Fast</h3>
+                <p className="text-gray-600">
+                  Complete transactions in less than a second with just a tap. No more waiting in lines or fumbling with cash.
+                </p>
               </div>
-              <h3 className="text-xl font-bold text-rfid-blue mb-3">Lightning Fast</h3>
-              <p className="text-gray-600">
-                Complete transactions in less than a second with just a tap. No more waiting in lines or fumbling with cash.
-              </p>
-            </div>
+            </Link>
             
-            <div className="bg-white p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
-                <Lock size={32} className="text-rfid-teal" />
+            <Link to="/account" className="block hover:no-underline">
+              <div className="bg-white p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow">
+                <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Lock size={32} className="text-rfid-teal" />
+                </div>
+                <h3 className="text-xl font-bold text-rfid-blue mb-3">Highly Secure</h3>
+                <p className="text-gray-600">
+                  Advanced encryption and authentication protocols keep your payment information safe at all times.
+                </p>
               </div>
-              <h3 className="text-xl font-bold text-rfid-blue mb-3">Highly Secure</h3>
-              <p className="text-gray-600">
-                Advanced encryption and authentication protocols keep your payment information safe at all times.
-              </p>
-            </div>
+            </Link>
             
-            <div className="bg-white p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
-                <RefreshCw size={32} className="text-rfid-teal" />
+            <Link to="/cards" className="block hover:no-underline">
+              <div className="bg-white p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow">
+                <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
+                  <RefreshCw size={32} className="text-rfid-teal" />
+                </div>
+                <h3 className="text-xl font-bold text-rfid-blue mb-3">Versatile Use</h3>
+                <p className="text-gray-600">
+                  From retail and transit to events and access control, our RFID technology works seamlessly across platforms.
+                </p>
               </div>
-              <h3 className="text-xl font-bold text-rfid-blue mb-3">Versatile Use</h3>
-              <p className="text-gray-600">
-                From retail and transit to events and access control, our RFID technology works seamlessly across platforms.
-              </p>
-            </div>
+            </Link>
           </div>
         </div>
       </section>
@@ -102,40 +115,46 @@ const Home = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-rfid-teal rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl font-bold">
-                1
+            <Link to="/cards" className="block hover:no-underline">
+              <div className="text-center">
+                <div className="w-20 h-20 bg-rfid-teal rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl font-bold">
+                  1
+                </div>
+                <h3 className="text-xl font-bold text-rfid-blue mb-3">Register a Card</h3>
+                <p className="text-gray-600">
+                  Sign up for an account and register your RFID card or tag with our secure platform.
+                </p>
               </div>
-              <h3 className="text-xl font-bold text-rfid-blue mb-3">Register a Card</h3>
-              <p className="text-gray-600">
-                Sign up for an account and register your RFID card or tag with our secure platform.
-              </p>
-            </div>
+            </Link>
             
-            <div className="text-center">
-              <div className="w-20 h-20 bg-rfid-teal rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl font-bold">
-                2
+            <Link to="/cards" className="block hover:no-underline">
+              <div className="text-center">
+                <div className="w-20 h-20 bg-rfid-teal rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl font-bold">
+                  2
+                </div>
+                <h3 className="text-xl font-bold text-rfid-blue mb-3">Load Balance</h3>
+                <p className="text-gray-600">
+                  Add funds to your account using your preferred payment method - credit card, bank transfer, or mobile payment.
+                </p>
               </div>
-              <h3 className="text-xl font-bold text-rfid-blue mb-3">Load Balance</h3>
-              <p className="text-gray-600">
-                Add funds to your account using your preferred payment method - credit card, bank transfer, or mobile payment.
-              </p>
-            </div>
+            </Link>
             
-            <div className="text-center">
-              <div className="w-20 h-20 bg-rfid-teal rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl font-bold">
-                3
+            <Link to="/payment" className="block hover:no-underline">
+              <div className="text-center">
+                <div className="w-20 h-20 bg-rfid-teal rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl font-bold">
+                  3
+                </div>
+                <h3 className="text-xl font-bold text-rfid-blue mb-3">Tap & Pay</h3>
+                <p className="text-gray-600">
+                  Simply tap your card at any QuickTapPay terminal to make secure, instantaneous payments.
+                </p>
               </div>
-              <h3 className="text-xl font-bold text-rfid-blue mb-3">Tap & Pay</h3>
-              <p className="text-gray-600">
-                Simply tap your card at any QuickTapPay terminal to make secure, instantaneous payments.
-              </p>
-            </div>
+            </Link>
           </div>
           
           <div className="text-center mt-12">
-            <Button size="lg" className="bg-rfid-teal hover:bg-rfid-blue">
-              Get Your Card Today
+            <Button size="lg" className="bg-rfid-teal hover:bg-rfid-blue" asChild>
+              <Link to="/cards">Get Your Card Today</Link>
             </Button>
           </div>
         </div>
@@ -155,15 +174,17 @@ const Home = () => {
               <Button 
                 size="lg" 
                 className="bg-white text-rfid-blue hover:bg-gray-100"
+                asChild
               >
-                Sign Up Now
+                <Link to="/account">Sign Up Now</Link>
               </Button>
               <Button 
                 size="lg" 
                 variant="outline" 
                 className="border-white text-white hover:bg-white hover:text-rfid-blue"
+                asChild
               >
-                Contact Sales
+                <Link to="/account">Contact Sales</Link>
               </Button>
             </div>
           </div>

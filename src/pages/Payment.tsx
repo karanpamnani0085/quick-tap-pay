@@ -3,13 +3,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Nfc, Check, CreditCard, Lock, ChevronRight, MoreHorizontal } from "lucide-react";
+import { Nfc, Check, CreditCard, Lock, ChevronRight, MoreHorizontal, IndianRupee } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Payment = () => {
   const { toast } = useToast();
   const [activeCard, setActiveCard] = useState("card-1");
-  const [amount, setAmount] = useState(5.99);
+  const [amount, setAmount] = useState(399);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [isTapping, setIsTapping] = useState(false);
@@ -19,13 +19,13 @@ const Payment = () => {
       id: "card-1",
       name: "My Primary Card",
       cardNumber: "RFID-8741-2396",
-      balance: 67.50,
+      balance: 4750.50,
     },
     {
       id: "card-2",
       name: "Backup Tag",
       cardNumber: "RFID-6235-9012",
-      balance: 25.00,
+      balance: 1850.00,
     }
   ];
 
@@ -42,7 +42,7 @@ const Payment = () => {
         
         toast({
           title: "Payment Successful",
-          description: `$${amount.toFixed(2)} paid with ${cards.find(card => card.id === activeCard)?.name}`,
+          description: `₹${amount.toFixed(2)} paid with ${cards.find(card => card.id === activeCard)?.name}`,
         });
       }, 2000);
     }, 1500);
@@ -76,7 +76,10 @@ const Payment = () => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Amount</span>
-                <span className="text-xl font-bold text-rfid-blue">${amount.toFixed(2)}</span>
+                <span className="text-xl font-bold text-rfid-blue flex items-center">
+                  <IndianRupee size={18} className="mr-1" />
+                  {amount.toFixed(2)}
+                </span>
               </div>
             </div>
           </CardContent>
@@ -141,7 +144,10 @@ const Payment = () => {
                           </div>
                         </div>
                         <div className="flex items-center">
-                          <span className="mr-2 font-bold text-rfid-blue">${card.balance.toFixed(2)}</span>
+                          <span className="mr-2 font-bold text-rfid-blue flex items-center">
+                            <IndianRupee size={16} className="mr-1" />
+                            {card.balance.toFixed(2)}
+                          </span>
                           {activeCard === card.id && (
                             <div className="w-6 h-6 rounded-full bg-rfid-teal flex items-center justify-center text-white">
                               <Check size={16} />
@@ -175,7 +181,10 @@ const Payment = () => {
               <div className="bg-white rounded-lg p-4 mb-4 text-left">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-gray-600">Amount</span>
-                  <span className="font-bold text-gray-900">${amount.toFixed(2)}</span>
+                  <span className="font-bold text-gray-900 flex items-center">
+                    <IndianRupee size={16} className="mr-1" />
+                    {amount.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-gray-600">Card</span>
@@ -183,8 +192,9 @@ const Payment = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">New Balance</span>
-                  <span className="font-medium text-gray-900">
-                    ${selectedCard ? (selectedCard.balance - amount).toFixed(2) : "0.00"}
+                  <span className="font-medium text-gray-900 flex items-center">
+                    <IndianRupee size={16} className="mr-1" />
+                    {selectedCard ? (selectedCard.balance - amount).toFixed(2) : "0.00"}
                   </span>
                 </div>
               </div>

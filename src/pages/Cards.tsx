@@ -1,11 +1,12 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Plus, Tag, Edit, Trash2, Nfc } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { CreditCard, Plus, Tag, Edit, Trash2, Nfc, IndianRupee } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface RFIDCard {
   id: string;
@@ -18,12 +19,13 @@ interface RFIDCard {
 }
 
 const Cards = () => {
+  const { toast } = useToast();
   const [cards, setCards] = useState<RFIDCard[]>([
     {
       id: "card-1",
       name: "My Primary Card",
       cardNumber: "RFID-8741-2396",
-      balance: 67.50,
+      balance: 4750.50,
       isActive: true,
       type: "Card",
       lastUsed: "2025-04-01T10:23:12Z"
@@ -32,7 +34,7 @@ const Cards = () => {
       id: "card-2",
       name: "Backup Tag",
       cardNumber: "RFID-6235-9012",
-      balance: 25.00,
+      balance: 1850.00,
       isActive: true,
       type: "Tag",
       lastUsed: "2025-03-28T16:45:22Z"
@@ -41,7 +43,7 @@ const Cards = () => {
       id: "card-3",
       name: "Event Wristband",
       cardNumber: "RFID-3310-7832",
-      balance: 15.75,
+      balance: 1150.75,
       isActive: false,
       type: "Wristband",
       lastUsed: "2025-02-15T09:12:33Z"
@@ -53,9 +55,25 @@ const Cards = () => {
     cardNumber: "",
     type: "Card" as "Card" | "Tag" | "Wristband"
   });
+  
+  const [isEditing, setIsEditing] = useState<string | null>(null);
+  const [editData, setEditData] = useState({
+    name: "",
+    type: "Card" as "Card" | "Tag" | "Wristband",
+    isActive: true
+  });
 
   const handleAddCard = () => {
-    const newId = `card-${cards.length + 1}`;
+    if (!newCard.name || !newCard.cardNumber) {
+      toast({
+        title: "Validation Error",
+        description: "Card name and Card ID are required",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const newId = `card-${Date.now()}`;
     
     setCards([...cards, {
       id: newId,
@@ -86,7 +104,7 @@ const Cards = () => {
 
     toast({
       title: "Card Topped Up",
-      description: `Successfully added $${amount.toFixed(2)} to your card.`,
+      description: `Successfully added ₹${amount.toFixed(2)} to your card.`,
       variant: "default",
     });
   };
@@ -98,6 +116,31 @@ const Cards = () => {
       title: "Card Removed",
       description: `${name} has been removed from your account.`,
       variant: "destructive",
+    });
+  };
+
+  const startEditing = (card: RFIDCard) => {
+    setIsEditing(card.id);
+    setEditData({
+      name: card.name,
+      type: card.type,
+      isActive: card.isActive
+    });
+  };
+
+  const saveCardChanges = () => {
+    if (!isEditing) return;
+    
+    setCards(cards.map(card => 
+      card.id === isEditing ? {...card, ...editData} : card
+    ));
+    
+    setIsEditing(null);
+    
+    toast({
+      title: "Card Updated",
+      description: "Card information has been updated successfully.",
+      variant: "default"
     });
   };
 
@@ -194,7 +237,10 @@ const Cards = () => {
                   <span>Last Used</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-2xl font-bold text-rfid-blue">${card.balance.toFixed(2)}</span>
+                  <span className="text-2xl font-bold text-rfid-blue flex items-center">
+                    <IndianRupee size={18} className="mr-1" />
+                    {card.balance.toFixed(2)}
+                  </span>
                   <span className="text-sm text-gray-500">{card.lastUsed ? new Date(card.lastUsed).toLocaleDateString() : 'Never used'}</span>
                 </div>
               </div>
@@ -214,12 +260,12 @@ const Cards = () => {
                     </DialogDescription>
                   </DialogHeader>
                   <div className="grid grid-cols-3 gap-4 py-4">
-                    <Button variant="outline" onClick={() => handleTopUp(card.id, 10)}>$10</Button>
-                    <Button variant="outline" onClick={() => handleTopUp(card.id, 20)}>$20</Button>
-                    <Button variant="outline" onClick={() => handleTopUp(card.id, 50)}>$50</Button>
+                    <Button variant="outline" onClick={() => handleTopUp(card.id, 500)}>₹500</Button>
+                    <Button variant="outline" onClick={() => handleTopUp(card.id, 1000)}>₹1000</Button>
+                    <Button variant="outline" onClick={() => handleTopUp(card.id, 2000)}>₹2000</Button>
                   </div>
                   <DialogFooter className="flex justify-between">
-                    <Button variant="outline" onClick={() => handleTopUp(card.id, 100)}>$100</Button>
+                    <Button variant="outline" onClick={() => handleTopUp(card.id, 5000)}>₹5000</Button>
                     <Button className="bg-rfid-teal hover:bg-rfid-blue">
                       Custom Amount
                     </Button>
@@ -227,9 +273,65 @@ const Cards = () => {
                 </DialogContent>
               </Dialog>
               <div>
-                <Button variant="ghost" size="sm" className="text-gray-500 hover:text-rfid-blue">
-                  <Edit className="h-4 w-4" />
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-gray-500 hover:text-rfid-blue">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Edit Card</DialogTitle>
+                      <DialogDescription>
+                        Update your card information
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="edit-name" className="text-right">Name</Label>
+                        <Input
+                          id="edit-name"
+                          value={editData.name}
+                          onChange={(e) => setEditData({...editData, name: e.target.value})}
+                          className="col-span-3"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="edit-type" className="text-right">Type</Label>
+                        <select
+                          id="edit-type"
+                          value={editData.type}
+                          onChange={(e) => setEditData({...editData, type: e.target.value as "Card" | "Tag" | "Wristband"})}
+                          className="col-span-3 flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <option value="Card">Card</option>
+                          <option value="Tag">Tag</option>
+                          <option value="Wristband">Wristband</option>
+                        </select>
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="edit-status" className="text-right">Status</Label>
+                        <div className="flex items-center space-x-2 col-span-3">
+                          <Label htmlFor="active-toggle">
+                            {editData.isActive ? 'Active' : 'Inactive'}
+                          </Label>
+                          <input
+                            id="active-toggle"
+                            type="checkbox"
+                            checked={editData.isActive}
+                            onChange={(e) => setEditData({...editData, isActive: e.target.checked})}
+                            className="ml-2 h-4 w-4"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button className="bg-rfid-teal hover:bg-rfid-blue" onClick={saveCardChanges}>
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
                 <Button variant="ghost" size="sm" className="text-gray-500 hover:text-red-500" onClick={() => handleDeleteCard(card.id, card.name)}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
