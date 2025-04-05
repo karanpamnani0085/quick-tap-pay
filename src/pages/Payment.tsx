@@ -5,11 +5,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Nfc, Check, CreditCard, Lock, ChevronRight, MoreHorizontal, IndianRupee } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const Payment = () => {
   const { toast } = useToast();
   const [activeCard, setActiveCard] = useState("card-1");
-  const [amount, setAmount] = useState(399);
+  const [amount, setAmount] = useState<number>(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [isTapping, setIsTapping] = useState(false);
@@ -20,16 +22,26 @@ const Payment = () => {
       name: "My Primary Card",
       cardNumber: "RFID-8741-2396",
       balance: 4750.50,
-    },
-    {
-      id: "card-2",
-      name: "Backup Tag",
-      cardNumber: "RFID-6235-9012",
-      balance: 1850.00,
     }
   ];
 
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value) && value >= 0) {
+      setAmount(value);
+    }
+  };
+
   const handleTapToPay = () => {
+    if (amount <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid amount greater than 0.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsTapping(true);
     
     setTimeout(() => {
@@ -50,6 +62,7 @@ const Payment = () => {
 
   const handleReset = () => {
     setIsComplete(false);
+    setAmount(0);
   };
 
   const selectedCard = cards.find(card => card.id === activeCard);
@@ -62,7 +75,7 @@ const Payment = () => {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Payment Details</CardTitle>
-            <CardDescription>Complete your payment by tapping your device</CardDescription>
+            <CardDescription>Enter amount and tap your RFID card</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -74,8 +87,24 @@ const Payment = () => {
                 <span className="text-gray-600">Date</span>
                 <span>{new Date().toLocaleDateString()}</span>
               </div>
+              <div className="space-y-2 pb-2 border-b">
+                <Label htmlFor="amount" className="text-gray-600">Amount (₹)</Label>
+                <div className="relative">
+                  <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
+                  <Input 
+                    id="amount"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={amount}
+                    onChange={handleAmountChange}
+                    className="pl-8"
+                    disabled={isComplete || isProcessing || isTapping}
+                  />
+                </div>
+              </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Amount</span>
+                <span className="text-gray-600">Total</span>
                 <span className="text-xl font-bold text-rfid-blue flex items-center">
                   <IndianRupee size={18} className="mr-1" />
                   {amount.toFixed(2)}
@@ -161,7 +190,7 @@ const Payment = () => {
                   <Button 
                     className="w-full mt-4 bg-rfid-teal hover:bg-rfid-blue" 
                     onClick={handleTapToPay}
-                    disabled={isProcessing || isTapping}
+                    disabled={isProcessing || isTapping || amount <= 0}
                   >
                     {isProcessing ? 'Processing...' : 'Pay Now'}
                   </Button>

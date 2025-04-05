@@ -12,7 +12,7 @@ export interface Transaction {
   location?: string;
   flagged?: boolean;
   flagReason?: string;
-  currency?: string;
+  currency: string;
   gstAmount?: number;
   gstNumber?: string;
   invoiceNumber?: string;
