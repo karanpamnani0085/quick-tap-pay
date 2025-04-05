@@ -1,42 +1,69 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Nfc, Check, CreditCard, Lock, ChevronRight, MoreHorizontal, IndianRupee } from "lucide-react";
+import { Nfc, Check, CreditCard, Lock, IndianRupee } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
+import { dbService } from "@/services/dbService";
 
 const Payment = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [activeCard, setActiveCard] = useState("card-1");
-  const [amount, setAmount] = useState<number>(0);
+  const [amount, setAmount] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [isTapping, setIsTapping] = useState(false);
 
-  const cards = [
+  const userCards = user ? dbService.getCardsByUserId(user.id) : [];
+  const cards = userCards.length > 0 ? userCards : [
     {
       id: "card-1",
       name: "My Primary Card",
       cardNumber: "RFID-8741-2396",
       balance: 4750.50,
+      userId: user?.id || "1",
+      isActive: true,
     }
   ];
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value);
-    if (!isNaN(value) && value >= 0) {
-      setAmount(value);
-    }
+    // Allow only numbers and decimal point
+    const value = e.target.value.replace(/[^0-9.]/g, '');
+    setAmount(value);
   };
 
   const handleTapToPay = () => {
-    if (amount <= 0) {
+    const paymentAmount = parseFloat(amount);
+    
+    if (isNaN(paymentAmount) || paymentAmount <= 0) {
       toast({
         title: "Invalid Amount",
         description: "Please enter a valid amount greater than 0.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const selectedCard = cards.find(card => card.id === activeCard);
+    
+    if (!selectedCard) {
+      toast({
+        title: "Card Not Found",
+        description: "Please select a valid card.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (selectedCard.balance < paymentAmount) {
+      toast({
+        title: "Insufficient Balance",
+        description: "Your card doesn't have enough balance for this payment.",
         variant: "destructive"
       });
       return;
@@ -49,12 +76,36 @@ const Payment = () => {
       setIsProcessing(true);
       
       setTimeout(() => {
+        // Update card balance
+        if (user) {
+          dbService.updateCard(selectedCard.id, { 
+            balance: selectedCard.balance - paymentAmount,
+            lastUsed: new Date().toISOString()
+          });
+          
+          // Record transaction
+          dbService.createTransaction({
+            id: `tx-${Date.now()}`,
+            description: "Quick Payment",
+            amount: paymentAmount,
+            type: "payment",
+            status: "completed",
+            date: new Date().toISOString(),
+            cardId: selectedCard.id,
+            cardName: selectedCard.name,
+            merchant: "QuickTapPay Demo",
+            location: "Store",
+            userId: user.id,
+            currency: "INR"
+          });
+        }
+        
         setIsProcessing(false);
         setIsComplete(true);
         
         toast({
           title: "Payment Successful",
-          description: `₹${amount.toFixed(2)} paid with ${cards.find(card => card.id === activeCard)?.name}`,
+          description: `₹${paymentAmount.toFixed(2)} paid with ${selectedCard.name}`,
         });
       }, 2000);
     }, 1500);
@@ -62,7 +113,7 @@ const Payment = () => {
 
   const handleReset = () => {
     setIsComplete(false);
-    setAmount(0);
+    setAmount("");
   };
 
   const selectedCard = cards.find(card => card.id === activeCard);
@@ -93,12 +144,11 @@ const Payment = () => {
                   <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
                   <Input 
                     id="amount"
-                    type="number"
-                    min="0"
-                    step="0.01"
+                    type="text"
                     value={amount}
                     onChange={handleAmountChange}
                     className="pl-8"
+                    placeholder="0.00"
                     disabled={isComplete || isProcessing || isTapping}
                   />
                 </div>
@@ -107,7 +157,7 @@ const Payment = () => {
                 <span className="text-gray-600">Total</span>
                 <span className="text-xl font-bold text-rfid-blue flex items-center">
                   <IndianRupee size={18} className="mr-1" />
-                  {amount.toFixed(2)}
+                  {parseFloat(amount || "0").toFixed(2)}
                 </span>
               </div>
             </div>
@@ -190,7 +240,7 @@ const Payment = () => {
                   <Button 
                     className="w-full mt-4 bg-rfid-teal hover:bg-rfid-blue" 
                     onClick={handleTapToPay}
-                    disabled={isProcessing || isTapping || amount <= 0}
+                    disabled={isProcessing || isTapping || parseFloat(amount || "0") <= 0}
                   >
                     {isProcessing ? 'Processing...' : 'Pay Now'}
                   </Button>
@@ -212,7 +262,7 @@ const Payment = () => {
                   <span className="text-gray-600">Amount</span>
                   <span className="font-bold text-gray-900 flex items-center">
                     <IndianRupee size={16} className="mr-1" />
-                    {amount.toFixed(2)}
+                    {parseFloat(amount || "0").toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
@@ -223,7 +273,7 @@ const Payment = () => {
                   <span className="text-gray-600">New Balance</span>
                   <span className="font-medium text-gray-900 flex items-center">
                     <IndianRupee size={16} className="mr-1" />
-                    {selectedCard ? (selectedCard.balance - amount).toFixed(2) : "0.00"}
+                    {selectedCard ? (selectedCard.balance - parseFloat(amount || "0")).toFixed(2) : "0.00"}
                   </span>
                 </div>
               </div>

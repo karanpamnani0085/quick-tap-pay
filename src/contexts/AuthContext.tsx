@@ -5,6 +5,9 @@ interface User {
   id: string;
   name: string;
   email: string;
+  phone?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 interface AuthContextType {
@@ -14,6 +17,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  updateUserProfile: (data: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,7 +42,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const user = {
         id: '1',
         name: 'John Doe',
-        email
+        email,
+        firstName: 'John',
+        lastName: 'Doe',
+        phone: '+1 (555) 123-4567'
       };
       
       localStorage.setItem('user', JSON.stringify(user));
@@ -52,10 +59,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsLoading(true);
     try {
       // Mock signup - in a real app, this would be an API call
+      const [firstName, ...lastNameParts] = name.split(' ');
+      const lastName = lastNameParts.join(' ');
+      
       const user = {
         id: Date.now().toString(),
         name,
-        email
+        email,
+        firstName,
+        lastName,
+        phone: ''
       };
       
       localStorage.setItem('user', JSON.stringify(user));
@@ -65,13 +78,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const updateUserProfile = (data: Partial<User>) => {
+    if (!user) return;
+    
+    const updatedUser = { ...user, ...data };
+    
+    // Update name if firstName or lastName changed
+    if (data.firstName || data.lastName) {
+      updatedUser.name = `${updatedUser.firstName} ${updatedUser.lastName}`.trim();
+    }
+    
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  };
+
   const logout = () => {
     localStorage.removeItem('user');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, signup, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isAuthenticated: !!user, 
+      isLoading, 
+      login, 
+      signup, 
+      logout,
+      updateUserProfile
+    }}>
       {children}
     </AuthContext.Provider>
   );

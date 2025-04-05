@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,15 +7,29 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { User, Lock, Bell, CreditCard, Key, Shield, MoreHorizontal } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Account = () => {
   const { toast } = useToast();
+  const { user, updateUserProfile } = useAuth();
+
   const [form, setForm] = useState({
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-    phone: "+1 (555) 123-4567"
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: ""
   });
+
+  useEffect(() => {
+    if (user) {
+      setForm({
+        firstName: user.firstName || user.name.split(' ')[0] || "",
+        lastName: user.lastName || user.name.split(' ').slice(1).join(' ') || "",
+        email: user.email || "",
+        phone: user.phone || "",
+      });
+    }
+  }, [user]);
 
   const [notifications, setNotifications] = useState({
     paymentAlerts: true,
@@ -32,10 +46,20 @@ const Account = () => {
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been updated successfully.",
-    });
+    
+    if (user) {
+      updateUserProfile({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        phone: form.phone,
+      });
+      
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been updated successfully.",
+      });
+    }
   };
 
   const handlePasswordSubmit = (e: React.FormEvent) => {

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Plus, Tag, Edit, Trash2, Nfc, IndianRupee } from "lucide-react";
+import { CreditCard, Plus, Edit, Trash2, IndianRupee } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface RFIDCard {
@@ -14,7 +14,6 @@ interface RFIDCard {
   cardNumber: string;
   balance: number;
   isActive: boolean;
-  type: "Card" | "Tag" | "Wristband";
   lastUsed?: string;
 }
 
@@ -27,39 +26,18 @@ const Cards = () => {
       cardNumber: "RFID-8741-2396",
       balance: 4750.50,
       isActive: true,
-      type: "Card",
       lastUsed: "2025-04-01T10:23:12Z"
-    },
-    {
-      id: "card-2",
-      name: "Backup Tag",
-      cardNumber: "RFID-6235-9012",
-      balance: 1850.00,
-      isActive: true,
-      type: "Tag",
-      lastUsed: "2025-03-28T16:45:22Z"
-    },
-    {
-      id: "card-3",
-      name: "Event Wristband",
-      cardNumber: "RFID-3310-7832",
-      balance: 1150.75,
-      isActive: false,
-      type: "Wristband",
-      lastUsed: "2025-02-15T09:12:33Z"
-    },
+    }
   ]);
 
   const [newCard, setNewCard] = useState({
     name: "",
     cardNumber: "",
-    type: "Card" as "Card" | "Tag" | "Wristband"
   });
   
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [editData, setEditData] = useState({
     name: "",
-    type: "Card" as "Card" | "Tag" | "Wristband",
     isActive: true
   });
 
@@ -80,14 +58,12 @@ const Cards = () => {
       name: newCard.name,
       cardNumber: newCard.cardNumber,
       balance: 0,
-      isActive: true,
-      type: newCard.type
+      isActive: true
     }]);
 
     setNewCard({
       name: "",
       cardNumber: "",
-      type: "Card"
     });
 
     toast({
@@ -123,7 +99,6 @@ const Cards = () => {
     setIsEditing(card.id);
     setEditData({
       name: card.name,
-      type: card.type,
       isActive: card.isActive
     });
   };
@@ -144,21 +119,12 @@ const Cards = () => {
     });
   };
 
-  const getCardIcon = (type: string) => {
-    switch (type) {
-      case "Card": return <CreditCard className="h-6 w-6 text-rfid-teal" />;
-      case "Tag": return <Tag className="h-6 w-6 text-rfid-teal" />;
-      case "Wristband": return <Nfc className="h-6 w-6 text-rfid-teal" />;
-      default: return <CreditCard className="h-6 w-6 text-rfid-teal" />;
-    }
-  };
-
   return (
     <div className="container mx-auto py-10 px-4">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-rfid-blue">My RFID Cards & Tags</h1>
-          <p className="text-gray-600 mt-2">Manage your registered RFID payment devices</p>
+          <h1 className="text-3xl font-bold text-rfid-blue">My RFID Cards</h1>
+          <p className="text-gray-600 mt-2">Manage your registered RFID payment cards</p>
         </div>
         <Dialog>
           <DialogTrigger asChild>
@@ -168,9 +134,9 @@ const Cards = () => {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Add New RFID Card or Tag</DialogTitle>
+              <DialogTitle>Add New RFID Card</DialogTitle>
               <DialogDescription>
-                Enter the details of your RFID card or tag to register it with your account.
+                Enter the details of your RFID card to register it with your account.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -194,19 +160,6 @@ const Cards = () => {
                   className="col-span-3"
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="type" className="text-right">Type</Label>
-                <select
-                  id="type"
-                  value={newCard.type}
-                  onChange={(e) => setNewCard({...newCard, type: e.target.value as "Card" | "Tag" | "Wristband"})}
-                  className="col-span-3 flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="Card">Card</option>
-                  <option value="Tag">Tag</option>
-                  <option value="Wristband">Wristband</option>
-                </select>
-              </div>
             </div>
             <DialogFooter>
               <Button className="bg-rfid-teal hover:bg-rfid-blue" onClick={handleAddCard}>Add Card</Button>
@@ -220,7 +173,7 @@ const Cards = () => {
           <Card key={card.id} className={`rfid-card ${!card.isActive ? 'opacity-70' : ''}`}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div className="flex items-center">
-                {getCardIcon(card.type)}
+                <CreditCard className="h-6 w-6 text-rfid-teal" />
                 <div className="ml-2">
                   <CardTitle className="text-rfid-blue text-xl">{card.name}</CardTitle>
                   <CardDescription>{card.cardNumber}</CardDescription>
@@ -266,8 +219,8 @@ const Cards = () => {
                   </div>
                   <DialogFooter className="flex justify-between">
                     <Button variant="outline" onClick={() => handleTopUp(card.id, 5000)}>₹5000</Button>
-                    <Button className="bg-rfid-teal hover:bg-rfid-blue">
-                      Custom Amount
+                    <Button className="bg-rfid-teal hover:bg-rfid-blue" onClick={() => handleTopUp(card.id, 1000)}>
+                      Add ₹1000
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -295,19 +248,6 @@ const Cards = () => {
                           onChange={(e) => setEditData({...editData, name: e.target.value})}
                           className="col-span-3"
                         />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="edit-type" className="text-right">Type</Label>
-                        <select
-                          id="edit-type"
-                          value={editData.type}
-                          onChange={(e) => setEditData({...editData, type: e.target.value as "Card" | "Tag" | "Wristband"})}
-                          className="col-span-3 flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          <option value="Card">Card</option>
-                          <option value="Tag">Tag</option>
-                          <option value="Wristband">Wristband</option>
-                        </select>
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="edit-status" className="text-right">Status</Label>
