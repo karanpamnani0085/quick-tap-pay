@@ -15,6 +15,7 @@ import {
   TrendingUp,
   TrendingDown
 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import { detectAnomalies } from "../utils/aiFeatures/fraudDetection";
 import { generateMonthlyInsights, getTopMerchants } from "../utils/aiFeatures/userBehaviorAnalytics";
 import { getPersonalizedRecommendations } from "../utils/aiFeatures/recommendationEngine";
