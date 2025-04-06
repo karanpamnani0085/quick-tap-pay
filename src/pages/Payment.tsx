@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbService } from "@/services/dbService";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 const Payment = () => {
   const { toast } = useToast();
@@ -19,6 +21,14 @@ const Payment = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [isTapping, setIsTapping] = useState(false);
+  const [isPinDialogOpen, setIsPinDialogOpen] = useState(false);
+  const [enteredPin, setEnteredPin] = useState("");
+  const [pinError, setPinError] = useState("");
+  const [pendingPayment, setPendingPayment] = useState<{
+    amount: number;
+    cardId: string;
+    card: any;
+  } | null>(null);
 
   // Load user cards when component mounts or user changes
   useEffect(() => {
@@ -40,7 +50,7 @@ const Payment = () => {
     setAmount(value);
   };
 
-  const handleTapToPay = () => {
+  const initiatePayment = () => {
     if (!user) {
       toast({
         title: "Not Logged In",
@@ -80,7 +90,40 @@ const Payment = () => {
       });
       return;
     }
-    
+
+    // Store payment details for after PIN verification
+    setPendingPayment({
+      amount: paymentAmount,
+      cardId: selectedCard.id,
+      card: selectedCard
+    });
+
+    // If user has a PIN, show PIN dialog
+    if (user.pin) {
+      setPinError("");
+      setEnteredPin("");
+      setIsPinDialogOpen(true);
+    } else {
+      // No PIN set, proceed with payment
+      proceedWithPayment(paymentAmount, selectedCard);
+    }
+  };
+
+  const verifyPinAndPay = () => {
+    if (enteredPin === user?.pin) {
+      setIsPinDialogOpen(false);
+      
+      if (pendingPayment) {
+        proceedWithPayment(pendingPayment.amount, pendingPayment.card);
+        setPendingPayment(null);
+      }
+    } else {
+      setPinError("Incorrect PIN. Please try again.");
+      setEnteredPin("");
+    }
+  };
+
+  const proceedWithPayment = (paymentAmount: number, selectedCard: any) => {
     setIsTapping(true);
     
     setTimeout(() => {
@@ -107,7 +150,7 @@ const Payment = () => {
             cardName: selectedCard.name,
             merchant: "QuickTapPay Demo",
             location: "Store",
-            userId: user.id,
+            userId: user?.id,
             currency: "INR"
           });
           
@@ -124,6 +167,10 @@ const Payment = () => {
         });
       }, 2000);
     }, 1500);
+  };
+
+  const handleTapToPay = () => {
+    initiatePayment();
   };
 
   const handleReset = () => {
@@ -260,7 +307,7 @@ const Payment = () => {
                   
                   <Button 
                     className="w-full mt-4 bg-rfid-teal hover:bg-rfid-blue" 
-                    onClick={handleTapToPay}
+                    onClick={initiatePayment}
                     disabled={isProcessing || isTapping || parseFloat(amount || "0") <= 0 || cards.length === 0}
                   >
                     {isProcessing ? 'Processing...' : 'Pay Now'}
@@ -311,6 +358,52 @@ const Payment = () => {
           </Card>
         )}
       </div>
+
+      <Dialog open={isPinDialogOpen} onOpenChange={setIsPinDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Enter Your Payment PIN</DialogTitle>
+            <DialogDescription>
+              Please enter your 4-digit PIN to authorize this payment
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6">
+            <div className="space-y-4">
+              <div className="flex flex-col items-center space-y-3">
+                <InputOTP maxLength={4} value={enteredPin} onChange={setEnteredPin}>
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                  </InputOTPGroup>
+                </InputOTP>
+                {pinError && (
+                  <p className="text-sm text-red-500">{pinError}</p>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-between">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsPinDialogOpen(false);
+                setPendingPayment(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              className="bg-rfid-teal hover:bg-rfid-blue"
+              onClick={verifyPinAndPay}
+              disabled={enteredPin.length !== 4}
+            >
+              Verify & Pay
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

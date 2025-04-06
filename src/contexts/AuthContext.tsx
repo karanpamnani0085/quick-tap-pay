@@ -1,155 +1,127 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { dbService } from '@/services/dbService';
 
-interface User {
+// Define user type
+type User = {
   id: string;
-  name: string;
   email: string;
-  phone?: string;
+  password: string;
   firstName?: string;
   lastName?: string;
-}
+  phone?: string;
+  pin?: string; // Added PIN field
+};
 
-interface AuthContextType {
+// Define context type
+type AuthContextType = {
   user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => boolean;
+  signup: (email: string, password: string, firstName?: string, lastName?: string) => boolean;
   logout: () => void;
-  updateUserProfile: (data: Partial<User>) => void;
-}
+  updateUserProfile: (userData: Partial<User>) => void;
+};
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create context with default values
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  login: () => false,
+  signup: () => false,
+  logout: () => {},
+  updateUserProfile: () => {},
+});
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+// Provider component
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
+  // Check for saved user on initial load
   useEffect(() => {
-    // Check if user is stored in localStorage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
     }
-    setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      // Check if user exists in our database
-      const existingUser = dbService.getUserByEmail(email);
-      
-      if (!existingUser) {
-        throw new Error('Invalid email or password');
-      }
-      
-      // In real app, you would hash and compare passwords
-      if (existingUser.password !== password) {
-        throw new Error('Invalid email or password');
-      }
-      
-      // Create a sanitized user object (without password)
-      const userToSave = {
-        id: existingUser.id,
-        name: existingUser.name,
-        email: existingUser.email,
-        firstName: existingUser.firstName,
-        lastName: existingUser.lastName,
-        phone: existingUser.phone
-      };
-      
-      localStorage.setItem('user', JSON.stringify(userToSave));
-      setUser(userToSave);
-    } finally {
-      setIsLoading(false);
-    }
+  // User database operations
+  const getUsersFromStorage = (): User[] => {
+    const users = localStorage.getItem('users');
+    return users ? JSON.parse(users) : [];
   };
 
-  const signup = async (name: string, email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      // Check if user already exists
-      const existingUser = dbService.getUserByEmail(email);
-      if (existingUser) {
-        throw new Error('Email already in use');
-      }
-      
-      // Split name into first and last name
-      const [firstName, ...lastNameParts] = name.split(' ');
-      const lastName = lastNameParts.join(' ');
-      
-      // Create new user in our database
-      const newUser = dbService.createUser({
-        name,
-        email,
-        password,
-        firstName,
-        lastName,
-        phone: ''
-      });
-      
-      // Create a sanitized user object (without password)
-      const userToSave = {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        phone: newUser.phone
-      };
-      
-      localStorage.setItem('user', JSON.stringify(userToSave));
-      setUser(userToSave);
-    } finally {
-      setIsLoading(false);
-    }
+  const saveUsersToStorage = (users: User[]) => {
+    localStorage.setItem('users', JSON.stringify(users));
   };
 
-  const updateUserProfile = (data: Partial<User>) => {
-    if (!user) return;
+  const login = (email: string, password: string): boolean => {
+    const users = getUsersFromStorage();
+    const foundUser = users.find(u => u.email === email && u.password === password);
     
-    const updatedUser = { ...user, ...data };
+    if (foundUser) {
+      setUser(foundUser);
+      localStorage.setItem('currentUser', JSON.stringify(foundUser));
+      return true;
+    }
+    return false;
+  };
+
+  const signup = (email: string, password: string, firstName?: string, lastName?: string): boolean => {
+    const users = getUsersFromStorage();
     
-    // Update name if firstName or lastName changed
-    if (data.firstName || data.lastName) {
-      updatedUser.name = `${updatedUser.firstName || ''} ${updatedUser.lastName || ''}`.trim();
+    // Check if user already exists
+    if (users.some(u => u.email === email)) {
+      return false;
     }
     
-    // Update user in our database
-    dbService.updateUser(user.id, updatedUser);
+    const newUser: User = {
+      id: `user-${Date.now()}`,
+      email,
+      password,
+      firstName,
+      lastName
+    };
     
-    // Update local storage and state
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    setUser(updatedUser);
+    const updatedUsers = [...users, newUser];
+    saveUsersToStorage(updatedUsers);
+    
+    setUser(newUser);
+    localStorage.setItem('currentUser', JSON.stringify(newUser));
+    return true;
   };
 
   const logout = () => {
-    localStorage.removeItem('user');
     setUser(null);
+    localStorage.removeItem('currentUser');
+  };
+
+  const updateUserProfile = (userData: Partial<User>) => {
+    if (!user) return;
+
+    const users = getUsersFromStorage();
+    const userIndex = users.findIndex(u => u.id === user.id);
+    
+    if (userIndex >= 0) {
+      const updatedUser = { ...users[userIndex], ...userData };
+      users[userIndex] = updatedUser;
+      
+      saveUsersToStorage(users);
+      setUser(updatedUser);
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+    }
+  };
+
+  const authContextValue: AuthContextType = {
+    user,
+    login,
+    signup,
+    logout,
+    updateUserProfile,
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isAuthenticated: !!user, 
-      isLoading, 
-      login, 
-      signup, 
-      logout,
-      updateUserProfile
-    }}>
+    <AuthContext.Provider value={authContextValue}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);

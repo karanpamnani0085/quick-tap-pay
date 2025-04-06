@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { User, Lock, Bell, CreditCard, Key, Shield, MoreHorizontal } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 const Account = () => {
   const { toast } = useToast();
@@ -21,7 +21,11 @@ const Account = () => {
     phone: ""
   });
 
-  // Initialize form with user data when it changes
+  const [pin, setPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [currentPin, setCurrentPin] = useState("");
+  const [showPinForm, setShowPinForm] = useState(false);
+
   useEffect(() => {
     if (user) {
       setForm({
@@ -65,6 +69,60 @@ const Account = () => {
       toast({
         title: "Not Logged In",
         description: "You need to log in to update your profile.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handlePinSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (user?.pin && currentPin !== user.pin) {
+      toast({
+        title: "Incorrect Current PIN",
+        description: "The current PIN you entered is incorrect.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+      toast({
+        title: "Invalid PIN",
+        description: "PIN must be exactly 4 digits.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (pin !== confirmPin) {
+      toast({
+        title: "PINs Don't Match",
+        description: "The new PIN and confirmation PIN do not match.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (user) {
+      updateUserProfile({
+        ...user,
+        pin: pin
+      });
+      
+      toast({
+        title: "PIN Updated",
+        description: "Your payment PIN has been set successfully.",
+      });
+      
+      setPin("");
+      setConfirmPin("");
+      setCurrentPin("");
+      setShowPinForm(false);
+    } else {
+      toast({
+        title: "Not Logged In",
+        description: "You need to log in to set a PIN.",
         variant: "destructive"
       });
     }
@@ -234,14 +292,81 @@ const Account = () => {
                       onCheckedChange={() => handleSecurityChange("locationTracking")} 
                     />
                   </div>
+                  
+                  <div className="pt-4 border-t">
+                    <h4 className="font-medium mb-4">Payment PIN</h4>
+                    {!showPinForm ? (
+                      <Button 
+                        variant="outline" 
+                        className="flex items-center"
+                        onClick={() => setShowPinForm(true)}
+                      >
+                        <Key className="mr-2 h-4 w-4" /> 
+                        {user?.pin ? "Change PIN" : "Set Payment PIN"}
+                      </Button>
+                    ) : (
+                      <form onSubmit={handlePinSubmit} className="space-y-4">
+                        {user?.pin && (
+                          <div className="space-y-2">
+                            <Label htmlFor="currentPin">Current PIN</Label>
+                            <InputOTP maxLength={4} value={currentPin} onChange={setCurrentPin}>
+                              <InputOTPGroup>
+                                <InputOTPSlot index={0} />
+                                <InputOTPSlot index={1} />
+                                <InputOTPSlot index={2} />
+                                <InputOTPSlot index={3} />
+                              </InputOTPGroup>
+                            </InputOTP>
+                          </div>
+                        )}
+                        <div className="space-y-2">
+                          <Label htmlFor="newPin">New PIN</Label>
+                          <InputOTP maxLength={4} value={pin} onChange={setPin}>
+                            <InputOTPGroup>
+                              <InputOTPSlot index={0} />
+                              <InputOTPSlot index={1} />
+                              <InputOTPSlot index={2} />
+                              <InputOTPSlot index={3} />
+                            </InputOTPGroup>
+                          </InputOTP>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="confirmPin">Confirm PIN</Label>
+                          <InputOTP maxLength={4} value={confirmPin} onChange={setConfirmPin}>
+                            <InputOTPGroup>
+                              <InputOTPSlot index={0} />
+                              <InputOTPSlot index={1} />
+                              <InputOTPSlot index={2} />
+                              <InputOTPSlot index={3} />
+                            </InputOTPGroup>
+                          </InputOTP>
+                        </div>
+                        <div className="flex space-x-2 pt-2">
+                          <Button type="submit" className="bg-rfid-teal hover:bg-rfid-blue">
+                            Save PIN
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => {
+                              setShowPinForm(false);
+                              setPin("");
+                              setConfirmPin("");
+                              setCurrentPin("");
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
+                  
                   <div className="pt-4 border-t">
                     <h4 className="font-medium mb-2">Security Quick Actions</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Button variant="outline" className="flex items-center border-red-200 text-red-600 hover:bg-red-50">
                         <Shield className="mr-2 h-4 w-4" /> Lock All Cards
-                      </Button>
-                      <Button variant="outline" className="flex items-center">
-                        <Key className="mr-2 h-4 w-4" /> Change PIN
                       </Button>
                     </div>
                   </div>
