@@ -33,7 +33,8 @@ const AIInsights = () => {
       cardId: "card-1",
       cardName: "My Primary Card",
       merchant: "Downtown Cafe",
-      location: "123 Main St"
+      location: "123 Main St",
+      currency: "USD"
     },
     {
       id: "txn-2",
@@ -45,7 +46,8 @@ const AIInsights = () => {
       cardId: "card-1",
       cardName: "My Primary Card",
       merchant: "Metro Transit",
-      location: "Central Station"
+      location: "Central Station",
+      currency: "USD"
     },
     {
       id: "txn-3",
@@ -55,7 +57,8 @@ const AIInsights = () => {
       status: "completed",
       date: "2025-04-02T14:33:22Z",
       cardId: "card-1",
-      cardName: "My Primary Card"
+      cardName: "My Primary Card",
+      currency: "USD"
     },
     {
       id: "txn-4",
@@ -67,7 +70,8 @@ const AIInsights = () => {
       cardId: "card-1",
       cardName: "My Primary Card",
       merchant: "FreshMart",
-      location: "500 Elm Street"
+      location: "500 Elm Street",
+      currency: "USD"
     },
     {
       id: "txn-5",
@@ -77,7 +81,8 @@ const AIInsights = () => {
       status: "completed",
       date: "2025-03-30T11:17:35Z",
       cardId: "card-2",
-      cardName: "Backup Tag"
+      cardName: "Backup Tag",
+      currency: "USD"
     },
     {
       id: "txn-6",
@@ -89,7 +94,8 @@ const AIInsights = () => {
       cardId: "card-2",
       cardName: "Backup Tag",
       merchant: "City Pharmacy",
-      location: "712 Oak Ave"
+      location: "712 Oak Ave",
+      currency: "USD"
     },
     {
       id: "txn-7",
@@ -101,7 +107,8 @@ const AIInsights = () => {
       cardId: "card-1",
       cardName: "My Primary Card",
       merchant: "Office Vending",
-      location: "Work Building, Floor 3"
+      location: "Work Building, Floor 3",
+      currency: "USD"
     },
     // Adding more transactions to build better insights
     {
@@ -114,7 +121,8 @@ const AIInsights = () => {
       cardId: "card-1",
       cardName: "My Primary Card",
       merchant: "Italian Restaurant",
-      location: "210 Pine Boulevard"
+      location: "210 Pine Boulevard",
+      currency: "USD"
     },
     {
       id: "txn-9",
@@ -126,7 +134,8 @@ const AIInsights = () => {
       cardId: "card-1",
       cardName: "My Primary Card",
       merchant: "Downtown Cafe",
-      location: "123 Main St"
+      location: "123 Main St",
+      currency: "USD"
     },
     {
       id: "txn-10",
@@ -138,7 +147,8 @@ const AIInsights = () => {
       cardId: "card-1",
       cardName: "My Primary Card",
       merchant: "Cineplex",
-      location: "Mall of Entertainment"
+      location: "Mall of Entertainment",
+      currency: "USD"
     },
     // Additional transaction with anomaly
     {
@@ -153,7 +163,8 @@ const AIInsights = () => {
       merchant: "Electronics Store",
       location: "Tech Mall",
       flagged: true,
-      flagReason: "Amount significantly higher than average spending"
+      flagReason: "Amount significantly higher than average spending",
+      currency: "USD"
     }
   ]);
 
@@ -196,7 +207,8 @@ const AIInsights = () => {
       cardId: "card-1",
       cardName: "My Primary Card",
       merchant: "Unknown Merchant",
-      location: "Distant Location"
+      location: "Distant Location",
+      currency: "USD"
     };
     
     const anomalyCheck = detectAnomalies(transactions, newTransaction);
