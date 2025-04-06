@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,23 +13,26 @@ import { dbService } from "@/services/dbService";
 const Payment = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [activeCard, setActiveCard] = useState("card-1");
+  const [cards, setCards] = useState<any[]>([]);
+  const [activeCard, setActiveCard] = useState("");
   const [amount, setAmount] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [isTapping, setIsTapping] = useState(false);
 
-  const userCards = user ? dbService.getCardsByUserId(user.id) : [];
-  const cards = userCards.length > 0 ? userCards : [
-    {
-      id: "card-1",
-      name: "My Primary Card",
-      cardNumber: "RFID-8741-2396",
-      balance: 4750.50,
-      userId: user?.id || "1",
-      isActive: true,
+  // Load user cards when component mounts or user changes
+  useEffect(() => {
+    if (user) {
+      const userCards = dbService.getCardsByUserId(user.id);
+      setCards(userCards);
+      if (userCards.length > 0) {
+        setActiveCard(userCards[0].id);
+      }
+    } else {
+      setCards([]);
+      setActiveCard("");
     }
-  ];
+  }, [user]);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Allow only numbers and decimal point
@@ -38,6 +41,15 @@ const Payment = () => {
   };
 
   const handleTapToPay = () => {
+    if (!user) {
+      toast({
+        title: "Not Logged In",
+        description: "You need to log in to make payments.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const paymentAmount = parseFloat(amount);
     
     if (isNaN(paymentAmount) || paymentAmount <= 0) {
@@ -77,12 +89,12 @@ const Payment = () => {
       
       setTimeout(() => {
         // Update card balance
-        if (user) {
-          dbService.updateCard(selectedCard.id, { 
-            balance: selectedCard.balance - paymentAmount,
-            lastUsed: new Date().toISOString()
-          });
-          
+        const updatedCard = dbService.updateCard(selectedCard.id, { 
+          balance: selectedCard.balance - paymentAmount,
+          lastUsed: new Date().toISOString()
+        });
+        
+        if (updatedCard) {
           // Record transaction
           dbService.createTransaction({
             id: `tx-${Date.now()}`,
@@ -98,6 +110,9 @@ const Payment = () => {
             userId: user.id,
             currency: "INR"
           });
+          
+          // Update local cards state
+          setCards(cards.map(c => c.id === selectedCard.id ? updatedCard : c));
         }
         
         setIsProcessing(false);
@@ -208,39 +223,45 @@ const Payment = () => {
                 <div className="space-y-4">
                   <p className="text-gray-500 text-sm mb-4">Choose a payment card</p>
                   
-                  {cards.map(card => (
-                    <Card 
-                      key={card.id}
-                      className={`cursor-pointer hover:shadow transition-all ${activeCard === card.id ? 'border-rfid-teal ring-1 ring-rfid-teal' : ''}`}
-                      onClick={() => setActiveCard(card.id)}
-                    >
-                      <CardContent className="p-4 flex items-center justify-between">
-                        <div className="flex items-center">
-                          <CreditCard size={28} className="text-rfid-teal mr-3" />
-                          <div>
-                            <p className="font-medium text-gray-900">{card.name}</p>
-                            <p className="text-sm text-gray-500">{card.cardNumber}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center">
-                          <span className="mr-2 font-bold text-rfid-blue flex items-center">
-                            <IndianRupee size={16} className="mr-1" />
-                            {card.balance.toFixed(2)}
-                          </span>
-                          {activeCard === card.id && (
-                            <div className="w-6 h-6 rounded-full bg-rfid-teal flex items-center justify-center text-white">
-                              <Check size={16} />
+                  {cards.length === 0 ? (
+                    <div className="text-center py-6 bg-gray-50 rounded-lg border border-gray-200">
+                      <p className="text-gray-500">No cards available. Add a card first.</p>
+                    </div>
+                  ) : (
+                    cards.map(card => (
+                      <Card 
+                        key={card.id}
+                        className={`cursor-pointer hover:shadow transition-all ${activeCard === card.id ? 'border-rfid-teal ring-1 ring-rfid-teal' : ''}`}
+                        onClick={() => setActiveCard(card.id)}
+                      >
+                        <CardContent className="p-4 flex items-center justify-between">
+                          <div className="flex items-center">
+                            <CreditCard size={28} className="text-rfid-teal mr-3" />
+                            <div>
+                              <p className="font-medium text-gray-900">{card.name}</p>
+                              <p className="text-sm text-gray-500">{card.cardNumber}</p>
                             </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                          </div>
+                          <div className="flex items-center">
+                            <span className="mr-2 font-bold text-rfid-blue flex items-center">
+                              <IndianRupee size={16} className="mr-1" />
+                              {card.balance.toFixed(2)}
+                            </span>
+                            {activeCard === card.id && (
+                              <div className="w-6 h-6 rounded-full bg-rfid-teal flex items-center justify-center text-white">
+                                <Check size={16} />
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
                   
                   <Button 
                     className="w-full mt-4 bg-rfid-teal hover:bg-rfid-blue" 
                     onClick={handleTapToPay}
-                    disabled={isProcessing || isTapping || parseFloat(amount || "0") <= 0}
+                    disabled={isProcessing || isTapping || parseFloat(amount || "0") <= 0 || cards.length === 0}
                   >
                     {isProcessing ? 'Processing...' : 'Pay Now'}
                   </Button>

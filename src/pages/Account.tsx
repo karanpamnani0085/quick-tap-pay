@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,11 +21,12 @@ const Account = () => {
     phone: ""
   });
 
+  // Initialize form with user data when it changes
   useEffect(() => {
     if (user) {
       setForm({
-        firstName: user.firstName || user.name.split(' ')[0] || "",
-        lastName: user.lastName || user.name.split(' ').slice(1).join(' ') || "",
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
         email: user.email || "",
         phone: user.phone || "",
       });
@@ -58,6 +60,12 @@ const Account = () => {
       toast({
         title: "Profile Updated",
         description: "Your profile information has been updated successfully.",
+      });
+    } else {
+      toast({
+        title: "Not Logged In",
+        description: "You need to log in to update your profile.",
+        variant: "destructive"
       });
     }
   };

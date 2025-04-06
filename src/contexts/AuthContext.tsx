@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { dbService } from '@/services/dbService';
 
 interface User {
   id: string;
@@ -38,18 +39,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Mock login - in a real app, this would be an API call
-      const user = {
-        id: '1',
-        name: 'John Doe',
-        email,
-        firstName: 'John',
-        lastName: 'Doe',
-        phone: '+1 (555) 123-4567'
+      // Check if user exists in our database
+      const existingUser = dbService.getUserByEmail(email);
+      
+      if (!existingUser) {
+        throw new Error('Invalid email or password');
+      }
+      
+      // In real app, you would hash and compare passwords
+      if (existingUser.password !== password) {
+        throw new Error('Invalid email or password');
+      }
+      
+      // Create a sanitized user object (without password)
+      const userToSave = {
+        id: existingUser.id,
+        name: existingUser.name,
+        email: existingUser.email,
+        firstName: existingUser.firstName,
+        lastName: existingUser.lastName,
+        phone: existingUser.phone
       };
       
-      localStorage.setItem('user', JSON.stringify(user));
-      setUser(user);
+      localStorage.setItem('user', JSON.stringify(userToSave));
+      setUser(userToSave);
     } finally {
       setIsLoading(false);
     }
@@ -58,21 +71,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signup = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Mock signup - in a real app, this would be an API call
+      // Check if user already exists
+      const existingUser = dbService.getUserByEmail(email);
+      if (existingUser) {
+        throw new Error('Email already in use');
+      }
+      
+      // Split name into first and last name
       const [firstName, ...lastNameParts] = name.split(' ');
       const lastName = lastNameParts.join(' ');
       
-      const user = {
-        id: Date.now().toString(),
+      // Create new user in our database
+      const newUser = dbService.createUser({
         name,
         email,
+        password,
         firstName,
         lastName,
         phone: ''
+      });
+      
+      // Create a sanitized user object (without password)
+      const userToSave = {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        phone: newUser.phone
       };
       
-      localStorage.setItem('user', JSON.stringify(user));
-      setUser(user);
+      localStorage.setItem('user', JSON.stringify(userToSave));
+      setUser(userToSave);
     } finally {
       setIsLoading(false);
     }
@@ -85,9 +115,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     // Update name if firstName or lastName changed
     if (data.firstName || data.lastName) {
-      updatedUser.name = `${updatedUser.firstName} ${updatedUser.lastName}`.trim();
+      updatedUser.name = `${updatedUser.firstName || ''} ${updatedUser.lastName || ''}`.trim();
     }
     
+    // Update user in our database
+    dbService.updateUser(user.id, updatedUser);
+    
+    // Update local storage and state
     localStorage.setItem('user', JSON.stringify(updatedUser));
     setUser(updatedUser);
   };

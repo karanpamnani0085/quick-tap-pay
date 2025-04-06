@@ -113,7 +113,12 @@ export const dbService = {
     
     localStorage.setItem('transactions', JSON.stringify([...allTransactions, transaction]));
     return transaction;
-  }
+  },
+  
+  getAllTransactions: (): (Transaction & { userId: string })[] => {
+    const transactions = localStorage.getItem('transactions');
+    return transactions ? JSON.parse(transactions) : [];
+  },
 };
 
 // Initialize some demo data if needed
