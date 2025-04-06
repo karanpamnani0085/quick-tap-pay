@@ -21,7 +21,8 @@ interface SignupModalProps {
 }
 
 export const SignupModal = ({ isOpen, onClose, onSwitchToLogin }: SignupModalProps) => {
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -29,7 +30,7 @@ export const SignupModal = ({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
   const { signup } = useAuth();
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (password !== confirmPassword) {
@@ -43,22 +44,23 @@ export const SignupModal = ({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
     
     setIsLoading(true);
     
-    try {
-      await signup(name, email, password);
+    const signupSuccessful = signup(email, password, firstName, lastName);
+    
+    if (signupSuccessful) {
       toast({
         title: "Account created!",
         description: "Welcome to QuickTapPay.",
       });
       onClose();
-    } catch (error) {
+    } else {
       toast({
         title: "Sign up failed",
-        description: "There was an error creating your account. Please try again.",
+        description: "An account with this email already exists.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
+    
+    setIsLoading(false);
   };
 
   return (
@@ -72,15 +74,27 @@ export const SignupModal = ({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="John Doe"
-                required
-              />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="grid gap-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="John"
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Doe"
+                  required
+                />
+              </div>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
