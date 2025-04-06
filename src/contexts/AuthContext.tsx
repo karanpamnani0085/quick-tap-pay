@@ -10,11 +10,13 @@ type User = {
   lastName?: string;
   phone?: string;
   pin?: string; // Added PIN field
+  name?: string; // Add name property
 };
 
 // Define context type
 type AuthContextType = {
   user: User | null;
+  isAuthenticated: boolean; // Add isAuthenticated property
   login: (email: string, password: string) => boolean;
   signup: (email: string, password: string, firstName?: string, lastName?: string) => boolean;
   logout: () => void;
@@ -24,6 +26,7 @@ type AuthContextType = {
 // Create context with default values
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  isAuthenticated: false, // Add default value
   login: () => false,
   signup: () => false,
   logout: () => {},
@@ -33,6 +36,7 @@ const AuthContext = createContext<AuthContextType>({
 // Provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const isAuthenticated = !!user; // Compute isAuthenticated based on user existence
 
   // Check for saved user on initial load
   useEffect(() => {
@@ -57,6 +61,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const foundUser = users.find(u => u.email === email && u.password === password);
     
     if (foundUser) {
+      // Set name property if firstName and/or lastName exist
+      if (foundUser.firstName || foundUser.lastName) {
+        foundUser.name = [foundUser.firstName, foundUser.lastName]
+          .filter(Boolean)
+          .join(' ');
+      }
+      
       setUser(foundUser);
       localStorage.setItem('currentUser', JSON.stringify(foundUser));
       return true;
@@ -72,12 +83,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false;
     }
     
+    const name = [firstName, lastName].filter(Boolean).join(' ');
+    
     const newUser: User = {
       id: `user-${Date.now()}`,
       email,
       password,
       firstName,
-      lastName
+      lastName,
+      name: name || undefined
     };
     
     const updatedUsers = [...users, newUser];
@@ -96,6 +110,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateUserProfile = (userData: Partial<User>) => {
     if (!user) return;
 
+    // If firstName or lastName is updated, update name as well
+    if (userData.firstName !== undefined || userData.lastName !== undefined) {
+      const updatedFirstName = userData.firstName !== undefined ? userData.firstName : user.firstName;
+      const updatedLastName = userData.lastName !== undefined ? userData.lastName : user.lastName;
+      
+      userData.name = [updatedFirstName, updatedLastName].filter(Boolean).join(' ');
+    }
+
     const users = getUsersFromStorage();
     const userIndex = users.findIndex(u => u.id === user.id);
     
@@ -111,6 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const authContextValue: AuthContextType = {
     user,
+    isAuthenticated,
     login,
     signup,
     logout,

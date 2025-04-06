@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,26 +26,27 @@ export const LoginModal = ({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
   const { login } = useAuth();
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    try {
-      await login(email, password);
+    const loginSuccessful = login(email, password);
+    
+    if (loginSuccessful) {
       toast({
         title: "Logged in successfully!",
         description: "Welcome back to QuickTapPay.",
       });
       onClose();
-    } catch (error) {
+    } else {
       toast({
         title: "Login failed",
         description: "Please check your credentials and try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
+    
+    setIsLoading(false);
   };
 
   return (

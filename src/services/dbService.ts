@@ -1,4 +1,3 @@
-
 import { Transaction } from "@/types/transaction";
 
 interface User {
@@ -9,6 +8,7 @@ interface User {
   firstName?: string;
   lastName?: string;
   phone?: string;
+  pin?: string; // Add PIN field
 }
 
 interface Card {
@@ -132,7 +132,8 @@ export const initializeDemoData = () => {
       password: 'password123', // In a real app, this would be hashed
       firstName: 'John',
       lastName: 'Doe',
-      phone: '+1 (555) 123-4567'
+      phone: '+1 (555) 123-4567',
+      pin: '1234' // Add default PIN for demo user
     };
     
     localStorage.setItem('users', JSON.stringify([demoUser]));
