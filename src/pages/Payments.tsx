@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -6,106 +7,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar as CalendarIcon, CreditCard, Search, ArrowDown, ArrowUp, Filter, Download, IndianRupee } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-
-interface TransactionType {
-  id: string;
-  description: string;
-  amount: number;
-  type: "payment" | "topup";
-  status: "completed" | "pending" | "failed";
-  date: string;
-  cardId: string;
-  cardName: string;
-  merchant?: string;
-  location?: string;
-}
+import { Transaction } from "@/types/transaction";
+import { dbService } from "@/services/dbService";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Payments = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState("all");
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const { user } = useAuth();
 
-  const transactions: TransactionType[] = [
-    {
-      id: "txn-1",
-      description: "Coffee Shop Purchase",
-      amount: 275.00,
-      type: "payment",
-      status: "completed",
-      date: "2025-04-04T09:15:32Z",
-      cardId: "card-1",
-      cardName: "My Primary Card",
-      merchant: "Downtown Cafe",
-      location: "123 Main St"
-    },
-    {
-      id: "txn-2",
-      description: "Transportation Fare",
-      amount: 150.00,
-      type: "payment",
-      status: "completed",
-      date: "2025-04-03T17:45:12Z",
-      cardId: "card-1",
-      cardName: "My Primary Card",
-      merchant: "Metro Transit",
-      location: "Central Station"
-    },
-    {
-      id: "txn-3",
-      description: "Card Top Up",
-      amount: 3000.00,
-      type: "topup",
-      status: "completed",
-      date: "2025-04-02T14:33:22Z",
-      cardId: "card-1",
-      cardName: "My Primary Card"
-    },
-    {
-      id: "txn-4",
-      description: "Grocery Purchase",
-      amount: 1845.50,
-      type: "payment",
-      status: "completed",
-      date: "2025-04-01T18:22:43Z",
-      cardId: "card-1",
-      cardName: "My Primary Card",
-      merchant: "FreshMart",
-      location: "500 Elm Street"
-    },
-    {
-      id: "txn-5",
-      description: "Card Top Up",
-      amount: 1500.00,
-      type: "topup",
-      status: "completed",
-      date: "2025-03-30T11:17:35Z",
-      cardId: "card-2",
-      cardName: "Backup Tag"
-    },
-    {
-      id: "txn-6",
-      description: "Pharmacy Purchase",
-      amount: 999.50,
-      type: "payment",
-      status: "completed",
-      date: "2025-03-29T13:42:09Z",
-      cardId: "card-2",
-      cardName: "Backup Tag",
-      merchant: "City Pharmacy",
-      location: "712 Oak Ave"
-    },
-    {
-      id: "txn-7",
-      description: "Vending Machine",
-      amount: 120.00,
-      type: "payment",
-      status: "failed",
-      date: "2025-03-28T15:11:27Z",
-      cardId: "card-1",
-      cardName: "My Primary Card",
-      merchant: "Office Vending",
-      location: "Work Building, Floor 3"
+  // Fetch transactions when component mounts or when user changes
+  useEffect(() => {
+    if (user) {
+      const userTransactions = dbService.getTransactionsByUserId(user.id);
+      setTransactions(userTransactions);
+    } else {
+      // If not logged in, use demo transactions or empty array
+      setTransactions(dbService.getAllTransactions());
     }
-  ];
+  }, [user]);
 
   const filteredTransactions = transactions
     .filter(txn => {
@@ -328,6 +249,12 @@ const Payments = () => {
                       </div>
                     </div>
                   ))}
+
+                {filteredTransactions.filter(txn => txn.type === "payment").length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No payment transactions found.</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -351,6 +278,12 @@ const Payments = () => {
                       </div>
                     </div>
                   ))}
+
+                {filteredTransactions.filter(txn => txn.type === "topup").length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No top-up transactions found.</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
