@@ -196,5 +196,78 @@ export const initializeAIInsights = (): void => {
   }
 };
 
-// Initialize demo insights
+// Initialize demo insights when the service is loaded
 initializeAIInsights();
+
+// Add sample transactions to help AI features work better
+const addSampleTransactions = () => {
+  const existingTransactions = localStorage.getItem('transactions');
+  if (existingTransactions) {
+    const parsedTransactions = JSON.parse(existingTransactions);
+    
+    // Only add sample data if we have less than 5 transactions
+    if (parsedTransactions.length < 5) {
+      const sampleTransactions = [
+        {
+          id: 'tx-3',
+          description: 'Restaurant Dinner',
+          amount: 850,
+          type: 'payment',
+          status: 'completed',
+          date: '2025-04-02T20:15:00Z',
+          cardId: 'card-1',
+          cardName: 'My Primary Card',
+          merchant: 'Taj Restaurant',
+          location: 'Mumbai',
+          userId: '1',
+          currency: 'INR'
+        },
+        {
+          id: 'tx-4',
+          description: 'Movie Tickets',
+          amount: 600,
+          type: 'payment',
+          status: 'completed',
+          date: '2025-04-03T18:30:00Z',
+          cardId: 'card-1',
+          cardName: 'My Primary Card',
+          merchant: 'PVR Cinemas',
+          location: 'Delhi',
+          userId: '1',
+          currency: 'INR'
+        },
+        {
+          id: 'tx-5',
+          description: 'Grocery Shopping',
+          amount: 1200,
+          type: 'payment',
+          status: 'completed',
+          date: '2025-03-25T11:45:00Z',
+          cardId: 'card-1',
+          cardName: 'My Primary Card',
+          merchant: 'Big Bazaar',
+          location: 'Mumbai',
+          userId: '1',
+          currency: 'INR'
+        },
+        {
+          id: 'tx-6',
+          description: 'Top-up',
+          amount: 3000,
+          type: 'topup',
+          status: 'completed',
+          date: '2025-03-20T09:30:00Z',
+          cardId: 'card-1',
+          cardName: 'My Primary Card',
+          userId: '1',
+          currency: 'INR'
+        }
+      ];
+      
+      localStorage.setItem('transactions', JSON.stringify([...parsedTransactions, ...sampleTransactions]));
+    }
+  }
+};
+
+// Add sample transactions
+addSampleTransactions();

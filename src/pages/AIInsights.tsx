@@ -9,6 +9,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BadgeCheck, AlertTriangle, RefreshCw, ChevronRight, ShieldAlert, Lightbulb, TrendingUp } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { dbService } from "@/services/dbService";
+import { useToast } from "@/hooks/use-toast"; 
 
 const AIInsights = () => {
   const { user, isAuthenticated } = useAuth();
@@ -17,6 +19,7 @@ const AIInsights = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
   const [refreshing, setRefreshing] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -39,12 +42,22 @@ const AIInsights = () => {
   const refreshAnalysis = () => {
     if (user) {
       setRefreshing(true);
+      
+      // Ensure we have the latest transactions
+      const transactions = dbService.getTransactionsByUserId(user.id);
+      console.log("Analyzing transactions:", transactions);
+      
+      // Run the full analysis
       aiService.runFullAnalysis(user.id);
       
       // Add a small delay to simulate processing
       setTimeout(() => {
         loadInsights();
         setRefreshing(false);
+        toast({
+          title: "Analysis Complete",
+          description: "Your AI insights have been updated based on your latest transactions.",
+        });
       }, 1500);
     }
   };
