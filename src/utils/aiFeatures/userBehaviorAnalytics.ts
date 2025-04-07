@@ -20,9 +20,22 @@ export const generateLocationInsights = (
   const totalSpent = locationTransactions.reduce((sum, t) => sum + t.amount, 0);
   const avgSpent = totalSpent / locationTransactions.length;
   
+  // Get the most recent transaction amount for this location
+  const latestTransaction = locationTransactions.sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  )[0];
+  
+  // If latest transaction is more than double the average
+  if (latestTransaction.amount > avgSpent * 2) {
+    return {
+      type: "average",
+      message: `You spent ₹${latestTransaction.amount.toFixed(2)} at ${location}, which is more than double your average spending of ₹${avgSpent.toFixed(2)} at this location`
+    };
+  }
+  
   return {
     type: "average",
-    message: `You typically spend $${avgSpent.toFixed(2)} at ${location}`
+    message: `You typically spend ₹${avgSpent.toFixed(2)} at ${location}`
   };
 };
 
@@ -60,10 +73,11 @@ export const generateMonthlyInsights = (
   // Only add insight if we have data for both months
   if (previousMonthTotal > 0 && currentMonthTotal > 0) {
     const difference = ((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100;
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     
     insights.push({
       type: "comparison",
-      message: `Your spending ${difference > 0 ? 'increased' : 'decreased'} by ${Math.abs(difference).toFixed(0)}% compared to last month`,
+      message: `Your spending ${difference > 0 ? 'increased' : 'decreased'} by ${Math.abs(difference).toFixed(0)}% compared to last month. You spent ₹${currentMonthTotal.toFixed(2)} in ${monthNames[currentMonth]} versus ₹${previousMonthTotal.toFixed(2)} in ${monthNames[lastMonth]}.`,
       difference: difference
     });
   }
@@ -75,7 +89,7 @@ export const getTopMerchants = (transactions: Transaction[]): string[] => {
   const merchantCounts: Record<string, number> = {};
   
   transactions.forEach(t => {
-    if (t.merchant) {
+    if (t.merchant && t.type === "payment") {
       merchantCounts[t.merchant] = (merchantCounts[t.merchant] || 0) + 1;
     }
   });

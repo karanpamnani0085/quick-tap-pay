@@ -65,10 +65,13 @@ export const aiService = {
   
   // Real-time analysis functions
   analyzeTransaction: (transaction: Transaction & { userId: string }): void => {
+    // Only analyze payment transactions
+    if (transaction.type !== "payment") return;
+    
     // Get user's previous transactions for context
     const userTransactions = dbService.getTransactionsByUserId(transaction.userId);
     
-    // Analyze for fraud using detectAnomalies instead of detectFraudulentTransaction
+    // Analyze for fraud using detectAnomalies
     const anomalyResult = detectAnomalies(userTransactions, transaction);
     
     if (anomalyResult.isAnomaly) {
@@ -90,7 +93,7 @@ export const aiService = {
           type: "spending",
           title: "Location Spending Pattern",
           description: locationInsight.message,
-          severity: "low"
+          severity: locationInsight.message.includes("double") ? "medium" : "low"
         });
       }
     }
@@ -100,8 +103,12 @@ export const aiService = {
     // Get user transactions
     const transactions = dbService.getTransactionsByUserId(userId);
     
+    // Only proceed if we have payment transactions to analyze
+    const paymentTransactions = transactions.filter(t => t.type === "payment");
+    if (paymentTransactions.length === 0) return;
+    
     // Generate product recommendations
-    const recommendations = getPersonalizedRecommendations(transactions);
+    const recommendations = getPersonalizedRecommendations(paymentTransactions);
     
     if (recommendations && recommendations.length > 0) {
       recommendations.forEach(recommendation => {
@@ -120,8 +127,12 @@ export const aiService = {
     // Get user transactions
     const transactions = dbService.getTransactionsByUserId(userId);
     
+    // Only proceed if we have payment transactions to analyze
+    const paymentTransactions = transactions.filter(t => t.type === "payment");
+    if (paymentTransactions.length === 0) return;
+    
     // Generate monthly spending insights
-    const monthlyInsights = generateMonthlyInsights(transactions);
+    const monthlyInsights = generateMonthlyInsights(paymentTransactions);
     
     if (monthlyInsights && monthlyInsights.length > 0) {
       monthlyInsights.forEach(insight => {
@@ -136,7 +147,7 @@ export const aiService = {
     }
     
     // Analyze top merchants
-    const topMerchants = getTopMerchants(transactions);
+    const topMerchants = getTopMerchants(paymentTransactions);
     if (topMerchants.length > 0) {
       aiService.addInsight({
         userId,
@@ -164,7 +175,7 @@ export const initializeAIInsights = (): void => {
         userId: '1',
         type: 'spending',
         title: 'Monthly Spending Alert',
-        description: 'Your spending is 20% higher this month compared to last month.',
+        description: 'Your spending is 20% higher this month compared to last month. You spent ₹4,750.50 in April versus ₹3,958.75 in March.',
         timestamp: '2025-04-04T15:32:00Z',
         severity: 'medium',
         isRead: false
