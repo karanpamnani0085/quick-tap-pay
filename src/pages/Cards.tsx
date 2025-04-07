@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,9 +9,6 @@ import { CreditCard, Plus, Edit, Trash2, IndianRupee } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbService } from "@/services/dbService";
-import { useNavigate } from "react-router-dom";
-import { aiService } from "@/services/aiService";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 interface RFIDCard {
   id: string;
@@ -25,7 +23,6 @@ interface RFIDCard {
 const Cards = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [cards, setCards] = useState<RFIDCard[]>([]);
   
   const [newCard, setNewCard] = useState({
@@ -39,14 +36,7 @@ const Cards = () => {
     isActive: true
   });
 
-  const [isPinDialogOpen, setIsPinDialogOpen] = useState(false);
-  const [enteredPin, setEnteredPin] = useState("");
-  const [pinError, setPinError] = useState("");
-  const [pendingTopUp, setPendingTopUp] = useState<{
-    id: string;
-    amount: number;
-  } | null>(null);
-
+  // Load cards when component mounts or user changes
   useEffect(() => {
     if (user) {
       const userCards = dbService.getCardsByUserId(user.id);
@@ -99,42 +89,14 @@ const Cards = () => {
   const handleTopUp = (id: string, amount: number) => {
     if (!user) return;
     
-    if (!user.pin) {
-      toast({
-        title: "Security PIN Required",
-        description: "Please set up a security PIN in your account settings before adding funds.",
-        variant: "destructive"
-      });
-      
-      setTimeout(() => {
-        navigate("/account");
-      }, 2500);
-      
-      return;
-    }
-    
-    setPendingTopUp({
-      id,
-      amount
-    });
-    
-    setEnteredPin("");
-    setPinError("");
-    setIsPinDialogOpen(true);
-  };
-
-  const processTopUp = () => {
-    if (!pendingTopUp || !user) return;
-    
-    const { id, amount } = pendingTopUp;
-    
     const updatedCard = dbService.updateCard(id, { 
       balance: (cards.find(card => card.id === id)?.balance || 0) + amount,
       lastUsed: new Date().toISOString()
     });
 
     if (updatedCard) {
-      const transaction = {
+      // Record the transaction
+      dbService.createTransaction({
         id: `tx-${Date.now()}`,
         description: "Top Up",
         amount: amount,
@@ -145,10 +107,7 @@ const Cards = () => {
         cardName: updatedCard.name,
         userId: user.id,
         currency: "INR"
-      };
-      
-      dbService.createTransaction(transaction);
-      aiService.analyzeTransaction({...transaction, userId: user.id});
+      });
 
       setCards(cards.map(card => 
         card.id === id ? updatedCard : card
@@ -159,18 +118,6 @@ const Cards = () => {
         description: `Successfully added ₹${amount.toFixed(2)} to your card.`,
         variant: "default",
       });
-      
-      setIsPinDialogOpen(false);
-      setPendingTopUp(null);
-    }
-  };
-
-  const verifyPinAndTopUp = () => {
-    if (enteredPin === user?.pin) {
-      processTopUp();
-    } else {
-      setPinError("Incorrect PIN. Please try again.");
-      setEnteredPin("");
     }
   };
 
@@ -385,52 +332,6 @@ const Cards = () => {
           ))}
         </div>
       )}
-      
-      <Dialog open={isPinDialogOpen} onOpenChange={setIsPinDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>Enter Your Security PIN</DialogTitle>
-            <DialogDescription>
-              Please enter your 4-digit PIN to authorize adding funds
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-6">
-            <div className="space-y-4">
-              <div className="flex flex-col items-center space-y-3">
-                <InputOTP maxLength={4} value={enteredPin} onChange={setEnteredPin}>
-                  <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                    <InputOTPSlot index={3} />
-                  </InputOTPGroup>
-                </InputOTP>
-                {pinError && (
-                  <p className="text-sm text-red-500">{pinError}</p>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="flex justify-between">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setIsPinDialogOpen(false);
-                setPendingTopUp(null);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button 
-              className="bg-rfid-teal hover:bg-rfid-blue"
-              onClick={verifyPinAndTopUp}
-              disabled={enteredPin.length !== 4}
-            >
-              Verify & Add Funds
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
