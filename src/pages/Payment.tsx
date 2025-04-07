@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,10 +12,12 @@ import { dbService } from "@/services/dbService";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { aiService } from "@/services/aiService";
+import { useNavigate } from "react-router-dom";
 
 const Payment = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [cards, setCards] = useState<any[]>([]);
   const [activeCard, setActiveCard] = useState("");
   const [amount, setAmount] = useState<string>("");
@@ -144,14 +147,14 @@ const Payment = () => {
             id: `tx-${Date.now()}`,
             description: "Quick Payment",
             amount: paymentAmount,
-            type: "payment",
-            status: "completed",
+            type: "payment" as "payment" | "transfer" | "topup",
+            status: "completed" as "pending" | "completed" | "failed",
             date: new Date().toISOString(),
             cardId: selectedCard.id,
             cardName: selectedCard.name,
             merchant: "QuickTapPay Demo",
             location: "Store",
-            userId: user?.id,
+            userId: user?.id || '',
             currency: "INR"
           };
           
