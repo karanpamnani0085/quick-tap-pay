@@ -2,14 +2,15 @@
 import { Transaction } from "@/types/transaction";
 import { dbService } from "./dbService";
 import { 
-  detectFraudulentTransaction, 
-  generateTransactionInsights 
+  detectAnomalies
 } from "@/utils/aiFeatures/fraudDetection";
 import { 
-  recommendProducts 
+  getPersonalizedRecommendations 
 } from "@/utils/aiFeatures/recommendationEngine";
 import { 
-  analyzeUserBehavior 
+  generateLocationInsights,
+  generateMonthlyInsights,
+  getTopMerchants
 } from "@/utils/aiFeatures/userBehaviorAnalytics";
 
 export interface AIInsight {
@@ -64,29 +65,34 @@ export const aiService = {
   
   // Real-time analysis functions
   analyzeTransaction: (transaction: Transaction & { userId: string }): void => {
-    // Analyze for fraud
-    const isFraudulent = detectFraudulentTransaction(transaction);
+    // Get user's previous transactions for context
+    const userTransactions = dbService.getTransactionsByUserId(transaction.userId);
     
-    if (isFraudulent) {
+    // Analyze for fraud using detectAnomalies instead of detectFraudulentTransaction
+    const anomalyResult = detectAnomalies(userTransactions, transaction);
+    
+    if (anomalyResult.isAnomaly) {
       aiService.addInsight({
         userId: transaction.userId,
         type: "fraud",
         title: "Suspicious Transaction Detected",
-        description: `We detected unusual activity for your transaction of ${transaction.amount} at ${transaction.merchant}. Please verify this transaction.`,
+        description: `We detected unusual activity: ${anomalyResult.reasons.join(". ")}`,
         severity: "high"
       });
     }
     
-    // Generate transaction insights
-    const insight = generateTransactionInsights(transaction);
-    if (insight) {
-      aiService.addInsight({
-        userId: transaction.userId,
-        type: "spending",
-        title: "Spending Pattern Insight",
-        description: insight,
-        severity: "low"
-      });
+    // Generate location insights
+    if (transaction.location) {
+      const locationInsight = generateLocationInsights(userTransactions, transaction.location);
+      if (locationInsight) {
+        aiService.addInsight({
+          userId: transaction.userId,
+          type: "spending",
+          title: "Location Spending Pattern",
+          description: locationInsight.message,
+          severity: "low"
+        });
+      }
     }
   },
   
@@ -95,15 +101,15 @@ export const aiService = {
     const transactions = dbService.getTransactionsByUserId(userId);
     
     // Generate product recommendations
-    const recommendations = recommendProducts(transactions);
+    const recommendations = getPersonalizedRecommendations(transactions);
     
     if (recommendations && recommendations.length > 0) {
       recommendations.forEach(recommendation => {
         aiService.addInsight({
           userId,
           type: "recommendation",
-          title: "Personalized Recommendation",
-          description: recommendation,
+          title: recommendation.title || "Personalized Recommendation",
+          description: recommendation.description,
           severity: "low"
         });
       });
@@ -114,18 +120,30 @@ export const aiService = {
     // Get user transactions
     const transactions = dbService.getTransactionsByUserId(userId);
     
-    // Analyze user behavior
-    const behaviorInsights = analyzeUserBehavior(transactions);
+    // Generate monthly spending insights
+    const monthlyInsights = generateMonthlyInsights(transactions);
     
-    if (behaviorInsights && behaviorInsights.length > 0) {
-      behaviorInsights.forEach(insight => {
+    if (monthlyInsights && monthlyInsights.length > 0) {
+      monthlyInsights.forEach(insight => {
         aiService.addInsight({
           userId,
           type: "behavior",
-          title: "User Behavior Insight",
-          description: insight,
-          severity: "medium"
+          title: "Monthly Spending Analysis",
+          description: insight.message,
+          severity: insight.difference && Math.abs(insight.difference) > 20 ? "medium" : "low"
         });
+      });
+    }
+    
+    // Analyze top merchants
+    const topMerchants = getTopMerchants(transactions);
+    if (topMerchants.length > 0) {
+      aiService.addInsight({
+        userId,
+        type: "behavior",
+        title: "Your Favorite Places",
+        description: `Your top merchants are: ${topMerchants.join(", ")}`,
+        severity: "low"
       });
     }
   },
