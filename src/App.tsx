@@ -11,6 +11,7 @@ import Payment from "./pages/Payment";
 import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 import AIInsights from "./pages/AIInsights";
+import Cart from "./pages/Cart"; // Add the Cart import
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -34,6 +35,7 @@ const App = () => (
                 <Route path="/payment" element={<Payment />} />
                 <Route path="/account" element={<Account />} />
                 <Route path="/ai-insights" element={<AIInsights />} />
+                <Route path="/cart" element={<Cart />} /> {/* Add the Cart route */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>

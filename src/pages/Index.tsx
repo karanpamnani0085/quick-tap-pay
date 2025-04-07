@@ -9,7 +9,8 @@ import {
   Shield, 
   LineChart, 
   AlertTriangle,
-  IndianRupee 
+  IndianRupee,
+  ShoppingCart 
 } from "lucide-react";
 
 const Index = () => {
@@ -29,6 +30,9 @@ const Index = () => {
           </Button>
           <Button asChild className="bg-gradient-to-r from-purple-600 to-rfid-blue text-white hover:from-purple-700 hover:to-rfid-blue">
             <Link to="/ai-insights">AI Insights</Link>
+          </Button>
+          <Button asChild className="bg-rfid-teal hover:bg-rfid-blue">
+            <Link to="/cart">Food Cart</Link>
           </Button>
         </div>
       </section>
@@ -96,14 +100,14 @@ const Index = () => {
             </Card>
           </Link>
           
-          <Link to="/account" className="block hover:no-underline">
+          <Link to="/cart" className="block hover:no-underline">
             <Card className="hover:shadow-lg transition-shadow h-full">
               <CardContent className="pt-6 pb-6 text-center">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rfid-teal/10 mb-4">
-                  <Shield className="h-6 w-6 text-rfid-teal" />
+                  <ShoppingCart className="h-6 w-6 text-rfid-teal" />
                 </div>
-                <h3 className="text-lg font-medium text-rfid-blue mb-2">Secure Transactions</h3>
-                <p className="text-gray-600">Advanced security measures to protect your payment data</p>
+                <h3 className="text-lg font-medium text-rfid-blue mb-2">Food Cart</h3>
+                <p className="text-gray-600">Order food from multiple shops and pay with your RFID card</p>
               </CardContent>
             </Card>
           </Link>

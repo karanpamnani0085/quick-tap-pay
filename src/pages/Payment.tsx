@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,10 +10,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { dbService } from "@/services/dbService";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 const Payment = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [cards, setCards] = useState<any[]>([]);
   const [activeCard, setActiveCard] = useState("");
   const [amount, setAmount] = useState<string>("");
@@ -29,6 +31,14 @@ const Payment = () => {
     cardId: string;
     card: any;
   } | null>(null);
+
+  // Get amount from query parameter if present
+  useEffect(() => {
+    const queryAmount = searchParams.get("amount");
+    if (queryAmount) {
+      setAmount(queryAmount);
+    }
+  }, [searchParams]);
 
   // Load user cards when component mounts or user changes
   useEffect(() => {
@@ -138,17 +148,22 @@ const Payment = () => {
         });
         
         if (updatedCard) {
+          // Get merchant name from cart if it's a cart payment
+          const merchant = searchParams.get("from") === "cart" 
+            ? "Food Cart" 
+            : "QuickTapPay Demo";
+
           // Record transaction
           dbService.createTransaction({
             id: `tx-${Date.now()}`,
-            description: "Quick Payment",
+            description: searchParams.get("from") === "cart" ? "Food Purchase" : "Quick Payment",
             amount: paymentAmount,
             type: "payment",
             status: "completed",
             date: new Date().toISOString(),
             cardId: selectedCard.id,
             cardName: selectedCard.name,
-            merchant: "QuickTapPay Demo",
+            merchant: merchant,
             location: "Store",
             userId: user?.id,
             currency: "INR"
@@ -176,6 +191,11 @@ const Payment = () => {
   const handleReset = () => {
     setIsComplete(false);
     setAmount("");
+    
+    // If we came from cart, navigate back to cart
+    if (searchParams.get("from") === "cart") {
+      navigate("/cart");
+    }
   };
 
   const selectedCard = cards.find(card => card.id === activeCard);
@@ -194,7 +214,7 @@ const Payment = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center pb-2 border-b">
                 <span className="text-gray-600">Merchant</span>
-                <span className="font-medium">QuickTapPay Demo</span>
+                <span className="font-medium">{searchParams.get("from") === "cart" ? "Food Cart" : "QuickTapPay Demo"}</span>
               </div>
               <div className="flex justify-between items-center pb-2 border-b">
                 <span className="text-gray-600">Date</span>
@@ -211,7 +231,7 @@ const Payment = () => {
                     onChange={handleAmountChange}
                     className="pl-8"
                     placeholder="0.00"
-                    disabled={isComplete || isProcessing || isTapping}
+                    disabled={isComplete || isProcessing || isTapping || searchParams.has("amount")}
                   />
                 </div>
               </div>
