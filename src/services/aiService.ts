@@ -63,13 +63,21 @@ export const aiService = {
     return true;
   },
   
-  // Real-time analysis functions
+  // Real-time analysis functions - now focused on payment transactions only
   analyzeTransaction: (transaction: Transaction & { userId: string }): void => {
+    // Only analyze payment and transfer transactions
+    if (!['payment', 'transfer', 'topup'].includes(transaction.type)) {
+      return;
+    }
+    
     // Get user's previous transactions for context
     const userTransactions = dbService.getTransactionsByUserId(transaction.userId);
+    const paymentTransactions = userTransactions.filter(tx => 
+      ['payment', 'transfer', 'topup'].includes(tx.type)
+    );
     
-    // Analyze for fraud using detectAnomalies instead of detectFraudulentTransaction
-    const anomalyResult = detectAnomalies(userTransactions, transaction);
+    // Analyze for fraud using detectAnomalies
+    const anomalyResult = detectAnomalies(paymentTransactions, transaction);
     
     if (anomalyResult.isAnomaly) {
       aiService.addInsight({
@@ -81,9 +89,9 @@ export const aiService = {
       });
     }
     
-    // Generate location insights
-    if (transaction.location) {
-      const locationInsight = generateLocationInsights(userTransactions, transaction.location);
+    // Generate location insights only for payment transactions
+    if (transaction.location && transaction.type === 'payment') {
+      const locationInsight = generateLocationInsights(paymentTransactions, transaction.location);
       if (locationInsight) {
         aiService.addInsight({
           userId: transaction.userId,
@@ -97,11 +105,14 @@ export const aiService = {
   },
   
   generateRecommendations: (userId: string): void => {
-    // Get user transactions
+    // Get user transactions - filter to payment-related only
     const transactions = dbService.getTransactionsByUserId(userId);
+    const paymentTransactions = transactions.filter(tx => 
+      ['payment', 'transfer', 'topup'].includes(tx.type)
+    );
     
     // Generate product recommendations
-    const recommendations = getPersonalizedRecommendations(transactions);
+    const recommendations = getPersonalizedRecommendations(paymentTransactions);
     
     if (recommendations && recommendations.length > 0) {
       recommendations.forEach(recommendation => {
@@ -117,11 +128,14 @@ export const aiService = {
   },
   
   analyzeUserBehavior: (userId: string): void => {
-    // Get user transactions
+    // Get user transactions - filter to payment-related only
     const transactions = dbService.getTransactionsByUserId(userId);
+    const paymentTransactions = transactions.filter(tx => 
+      ['payment', 'transfer', 'topup'].includes(tx.type)
+    );
     
     // Generate monthly spending insights
-    const monthlyInsights = generateMonthlyInsights(transactions);
+    const monthlyInsights = generateMonthlyInsights(paymentTransactions);
     
     if (monthlyInsights && monthlyInsights.length > 0) {
       monthlyInsights.forEach(insight => {
@@ -136,7 +150,7 @@ export const aiService = {
     }
     
     // Analyze top merchants
-    const topMerchants = getTopMerchants(transactions);
+    const topMerchants = getTopMerchants(paymentTransactions);
     if (topMerchants.length > 0) {
       aiService.addInsight({
         userId,

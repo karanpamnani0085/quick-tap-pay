@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { dbService } from "@/services/dbService";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { aiService } from "@/services/aiService";
 
 const Payment = () => {
   const { toast } = useToast();
@@ -30,7 +30,6 @@ const Payment = () => {
     card: any;
   } | null>(null);
 
-  // Load user cards when component mounts or user changes
   useEffect(() => {
     if (user) {
       const userCards = dbService.getCardsByUserId(user.id);
@@ -45,7 +44,6 @@ const Payment = () => {
   }, [user]);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Allow only numbers and decimal point
     const value = e.target.value.replace(/[^0-9.]/g, '');
     setAmount(value);
   };
@@ -91,21 +89,26 @@ const Payment = () => {
       return;
     }
 
-    // Store payment details for after PIN verification
     setPendingPayment({
       amount: paymentAmount,
       cardId: selectedCard.id,
       card: selectedCard
     });
 
-    // If user has a PIN, show PIN dialog
     if (user.pin) {
       setPinError("");
       setEnteredPin("");
       setIsPinDialogOpen(true);
     } else {
-      // No PIN set, proceed with payment
-      proceedWithPayment(paymentAmount, selectedCard);
+      toast({
+        title: "Security PIN Required",
+        description: "Please set up a security PIN in your account settings before making payments.",
+        variant: "destructive"
+      });
+      
+      setTimeout(() => {
+        navigate("/account");
+      }, 2500);
     }
   };
 
@@ -131,15 +134,13 @@ const Payment = () => {
       setIsProcessing(true);
       
       setTimeout(() => {
-        // Update card balance
         const updatedCard = dbService.updateCard(selectedCard.id, { 
           balance: selectedCard.balance - paymentAmount,
           lastUsed: new Date().toISOString()
         });
         
         if (updatedCard) {
-          // Record transaction
-          dbService.createTransaction({
+          const transaction = {
             id: `tx-${Date.now()}`,
             description: "Quick Payment",
             amount: paymentAmount,
@@ -152,9 +153,12 @@ const Payment = () => {
             location: "Store",
             userId: user?.id,
             currency: "INR"
-          });
+          };
           
-          // Update local cards state
+          dbService.createTransaction(transaction);
+          
+          aiService.analyzeTransaction({...transaction, userId: user?.id || ''});
+          
           setCards(cards.map(c => c.id === selectedCard.id ? updatedCard : c));
         }
         

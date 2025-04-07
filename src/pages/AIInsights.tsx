@@ -31,7 +31,17 @@ const AIInsights = () => {
     if (user) {
       setIsLoading(true);
       const userInsights = aiService.getInsights(user.id);
-      setInsights(userInsights);
+      
+      // Sort insights by timestamp (newest first) and by unread status
+      const sortedInsights = userInsights.sort((a, b) => {
+        // First sort by unread status
+        if (!a.isRead && b.isRead) return -1;
+        if (a.isRead && !b.isRead) return 1;
+        // Then sort by timestamp
+        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+      });
+      
+      setInsights(sortedInsights);
       setIsLoading(false);
     }
   };
@@ -106,7 +116,7 @@ const AIInsights = () => {
   return (
     <div className="container max-w-5xl py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">AI Insights & Recommendations</h1>
+        <h1 className="text-2xl font-bold">AI Insights & Real-Time Analysis</h1>
         <Button 
           onClick={refreshAnalysis} 
           disabled={refreshing || isLoading}
@@ -180,7 +190,7 @@ const AIInsights = () => {
         <Alert>
           <AlertTitle>No insights available</AlertTitle>
           <AlertDescription>
-            We don't have any personalized insights for you yet. Click on "Refresh Analysis" to generate new insights based on your recent activity.
+            We don't have any real-time transaction insights for you yet. Make some payments or add funds to your cards to generate new insights.
           </AlertDescription>
         </Alert>
       )}
