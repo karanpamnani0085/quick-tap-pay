@@ -45,6 +45,75 @@ const shops: Shop[] = [
       { id: "b2", name: "Chips", price: 20, description: "Crunchy potato chips" },
       { id: "b3", name: "Juice", price: 40, description: "Refreshing fruit juice" }
     ]
+  },
+  {
+    id: "shop-c",
+    name: "SR Chat Corner",
+    items: [
+      { id: "c1", name: "SAMOSA CHAT", price: 50, description: "Delicious samosa topped with chutneys and spices" },
+      { id: "c2", name: "CUTLET CHAT", price: 60, description: "Crispy cutlets served with tangy chutneys" },
+      { id: "c3", name: "PAPDI CHAT", price: 50, description: "Crispy fried dough wafers with chutneys and yogurt" },
+      { id: "c4", name: "KALKATA CHAT", price: 60, description: "Kolkata style spicy and tangy chaat" },
+      { id: "c5", name: "AMERCIAN CHAT", price: 60, description: "Fusion American style chaat with unique flavors" },
+      { id: "c6", name: "DILLAGI CHAT", price: 60, description: "Special chaat with a mix of sweet and spicy flavors" },
+      { id: "c7", name: "CHANA SAMOSA", price: 50, description: "Samosa served with spicy chickpea curry" },
+      { id: "c8", name: "CUTLET CHANA", price: 50, description: "Crispy cutlets served with chickpea curry" },
+      { id: "c9", name: "ALOO CHAT", price: 50, description: "Spicy potato chaat with chutneys" },
+      { id: "c10", name: "PAPDI CHANA", price: 50, description: "Crispy papdi topped with spicy chickpea curry" }
+    ]
+  },
+  {
+    id: "shop-d",
+    name: "BUTTY 2",
+    items: [
+      { id: "d1", name: "DAHI PURI", price: 50, description: "Puris filled with yogurt and chutneys" },
+      { id: "d2", name: "MASALA PURI", price: 50, description: "Puris topped with spicy masala" },
+      { id: "d3", name: "SEV PURI", price: 50, description: "Puris topped with sev, onions, and chutneys" },
+      { id: "d4", name: "PANI PURI (1 PLATE)", price: 30, description: "Hollow puris with flavored water and stuffing" },
+      { id: "d5", name: "BHEL PURI", price: 50, description: "Puffed rice mixed with vegetables and chutneys" },
+      { id: "d6", name: "SAMOSA (1 PLATE 2 PIECES)", price: 25, description: "Crispy pastry filled with spiced potatoes" },
+      { id: "d7", name: "SAMOSA PAFF (1 PLATE 2 PIECES)", price: 25, description: "Puff pastry samosas" },
+      { id: "d8", name: "CUTLET (1 PLATE 2 PIECES)", price: 40, description: "Crispy vegetable cutlets" },
+      { id: "d9", name: "BARO BHAJI", price: 40, description: "Spicy vegetable curry" },
+      { id: "d10", name: "PAV BHAJI", price: 50, description: "Spiced vegetable curry served with soft bread rolls" },
+      { id: "d11", name: "VADA PAV", price: 50, description: "Spicy potato fritter in a bread bun" },
+      { id: "d12", name: "CHEESE PAV BHAJI", price: 60, description: "Pav bhaji topped with cheese" },
+      { id: "d13", name: "KACHORI (1 PLATE 2 PCS)", price: 40, description: "Deep fried pastry with spicy filling" },
+      { id: "d14", name: "KACHORI CHAT", price: 60, description: "Kachori topped with yogurt and chutneys" }
+    ]
+  },
+  {
+    id: "shop-e",
+    name: "MASALEDAAR KITCHEN",
+    items: [
+      { id: "e1", name: "Veg Thali (Any Vegetable)", price: 110, description: "Complete vegetarian meal with roti, rice, dal and vegetable" },
+      { id: "e2", name: "Veg Thali (Rajma)", price: 120, description: "Complete meal with kidney beans curry" },
+      { id: "e3", name: "Veg Thali (Chole)", price: 120, description: "Complete meal with chickpea curry" },
+      { id: "e4", name: "Veg Thali (Kadhi)", price: 150, description: "Complete meal with yogurt based curry" },
+      { id: "e5", name: "Veg Thali (Bhindi Masala)", price: 150, description: "Complete meal with spiced okra" },
+      { id: "e6", name: "Anda Thali (2pcs)", price: 140, description: "Complete meal with 2 egg curry" },
+      { id: "e7", name: "Chicken Thali (4 pcs)", price: 180, description: "Complete meal with 4 pieces of chicken curry" },
+      { id: "e8", name: "Paneer Thali", price: 180, description: "Complete meal with cottage cheese curry" },
+      { id: "e9", name: "Mutton Thali (100 gm.)", price: 300, description: "Complete meal with mutton curry" },
+      { id: "e10", name: "Fish Thali (2pcs)", price: 170, description: "Complete meal with fish curry" },
+      { id: "e11", name: "Maharaj Veg Thali", price: 300, description: "Deluxe vegetarian thali with multiple dishes" },
+      { id: "e12", name: "Maharaja Non Veg Thali", price: 350, description: "Deluxe non-vegetarian thali with multiple dishes" }
+    ]
+  },
+  {
+    id: "shop-f",
+    name: "DUCK DONALD",
+    items: [
+      { id: "f1", name: "LIME", price: 10, description: "Refreshing lime juice" },
+      { id: "f2", name: "MINTCOOL LIME", price: 15, description: "Lime juice with cooling mint" },
+      { id: "f3", name: "BLUEBERRY LIME", price: 20, description: "Lime juice with blueberry flavor" },
+      { id: "f4", name: "MASALA LIME", price: 20, description: "Lime juice with spicy masala" },
+      { id: "f5", name: "MAUSAMBI JUICE", price: 35, description: "Fresh sweet lime juice" },
+      { id: "f6", name: "APPLE JUICE", price: 30, description: "Fresh apple juice" },
+      { id: "f7", name: "BANANA JUICE", price: 30, description: "Fresh banana smoothie" },
+      { id: "f8", name: "ABC JUICE", price: 50, description: "Apple, beetroot, and carrot mixed juice" },
+      { id: "f9", name: "BEETROOT JUICE", price: 30, description: "Fresh beetroot juice" }
+    ]
   }
 ];
 
@@ -116,7 +185,7 @@ const Cart = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Shop Selection and Items */}
         <div className="lg:col-span-2">
-          <div className="flex space-x-4 mb-6">
+          <div className="flex flex-wrap gap-2 mb-6">
             {shops.map(shop => (
               <Button
                 key={shop.id}
