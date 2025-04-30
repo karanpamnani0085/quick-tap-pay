@@ -6,7 +6,7 @@ import { aiService, AIInsight } from "@/services/aiService";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { RefreshCw, ChevronRight, ShieldAlert, Lightbulb, TrendingUp, Info } from "lucide-react";
+import { RefreshCw, ChevronRight, ShieldAlert, Lightbulb, TrendingUp, Info, AlertTriangle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { dbService } from "@/services/dbService";
