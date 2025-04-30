@@ -6,7 +6,7 @@ import { aiService, AIInsight } from "@/services/aiService";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { BadgeCheck, AlertTriangle, RefreshCw, ChevronRight, ShieldAlert, Lightbulb, TrendingUp, Info } from "lucide-react";
+import { RefreshCw, ChevronRight, ShieldAlert, Lightbulb, TrendingUp, Info } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { dbService } from "@/services/dbService";
@@ -33,7 +33,9 @@ const AIInsights = () => {
   const loadInsights = () => {
     if (user) {
       setIsLoading(true);
+      console.log("Loading insights for user:", user.id);
       const userInsights = aiService.getInsights(user.id);
+      console.log("Retrieved insights:", userInsights);
       setInsights(userInsights);
       setIsLoading(false);
     }
@@ -45,7 +47,7 @@ const AIInsights = () => {
       
       // Ensure we have the latest transactions
       const transactions = dbService.getTransactionsByUserId(user.id);
-      console.log("Analyzing transactions:", transactions);
+      console.log("Analyzing transactions for insights:", transactions);
       
       // Run the full analysis
       aiService.runFullAnalysis(user.id);

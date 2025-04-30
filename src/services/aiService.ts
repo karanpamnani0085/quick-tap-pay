@@ -32,6 +32,7 @@ export const aiService = {
   getInsights: (userId: string): AIInsight[] => {
     const insights = localStorage.getItem('ai_insights');
     const allInsights = insights ? JSON.parse(insights) : [];
+    console.log(`Getting insights for user ${userId}. Total insights:`, allInsights.length);
     return allInsights.filter((insight: AIInsight) => insight.userId === userId);
   },
   
@@ -46,6 +47,7 @@ export const aiService = {
       isRead: false,
     };
     
+    console.log("Adding new insight:", newInsight);
     localStorage.setItem('ai_insights', JSON.stringify([...allInsights, newInsight]));
     return newInsight;
   },
@@ -67,6 +69,7 @@ export const aiService = {
   
   // Real-time analysis functions
   analyzeTransaction: (transaction: Transaction & { userId: string }): void => {
+    console.log("Analyzing transaction:", transaction);
     // Only analyze payment transactions
     if (transaction.type !== "payment") return;
     
@@ -111,9 +114,22 @@ export const aiService = {
         severity: "medium"
       });
     }
+    
+    // Generate top merchant insight
+    const topMerchantInsight = getTopMerchantInsight(userTransactions);
+    if (topMerchantInsight) {
+      aiService.addInsight({
+        userId: transaction.userId,
+        type: "behavior",
+        title: "Your Top Merchant",
+        description: topMerchantInsight.message,
+        severity: "low"
+      });
+    }
   },
   
   generateRecommendations: (userId: string): void => {
+    console.log("Generating recommendations for user:", userId);
     // Get user transactions
     const transactions = dbService.getTransactionsByUserId(userId);
     
@@ -138,12 +154,19 @@ export const aiService = {
   },
   
   analyzeUserBehavior: (userId: string): void => {
+    console.log("Analyzing user behavior for:", userId);
     // Get user transactions
     const transactions = dbService.getTransactionsByUserId(userId);
+    console.log("Found transactions:", transactions.length);
     
     // Only proceed if we have payment transactions to analyze
     const paymentTransactions = transactions.filter(t => t.type === "payment");
-    if (paymentTransactions.length === 0) return;
+    if (paymentTransactions.length === 0) {
+      console.log("No payment transactions found for analysis");
+      return;
+    }
+    
+    console.log("Payment transactions for analysis:", paymentTransactions.length);
     
     // Generate monthly spending insights
     const monthlyInsights = generateMonthlyInsights(paymentTransactions);
@@ -160,8 +183,10 @@ export const aiService = {
       });
     }
     
-    // Generate top merchant insight
+    // Generate top merchant insight - always run this analysis
     const topMerchantInsight = getTopMerchantInsight(paymentTransactions);
+    console.log("Top merchant insight:", topMerchantInsight);
+    
     if (topMerchantInsight) {
       aiService.addInsight({
         userId,
@@ -172,8 +197,10 @@ export const aiService = {
       });
     }
     
-    // Analyze spending patterns
+    // Analyze spending patterns - always run this analysis
     const spendingPatternInsight = analyzeSpendingPatterns(paymentTransactions);
+    console.log("Spending pattern insight:", spendingPatternInsight);
+    
     if (spendingPatternInsight) {
       aiService.addInsight({
         userId,
@@ -199,6 +226,16 @@ export const aiService = {
   
   // Run all analyses at once
   runFullAnalysis: (userId: string): void => {
+    console.log("Running full analysis for user:", userId);
+    
+    // Clear previous insights to avoid duplicates
+    const insights = localStorage.getItem('ai_insights');
+    if (insights) {
+      const allInsights = JSON.parse(insights);
+      const otherUserInsights = allInsights.filter((insight: AIInsight) => insight.userId !== userId);
+      localStorage.setItem('ai_insights', JSON.stringify(otherUserInsights));
+    }
+    
     aiService.generateRecommendations(userId);
     aiService.analyzeUserBehavior(userId);
   }
@@ -299,10 +336,39 @@ const addSampleTransactions = () => {
           cardName: 'My Primary Card',
           userId: '1',
           currency: 'INR'
+        },
+        {
+          id: 'tx-7',
+          description: 'Coffee',
+          amount: 250,
+          type: 'payment',
+          status: 'completed',
+          date: '2025-04-10T10:30:00Z',
+          cardId: 'card-1',
+          cardName: 'My Primary Card',
+          merchant: 'Starbucks',
+          location: 'Mumbai',
+          userId: '1',
+          currency: 'INR'
+        },
+        {
+          id: 'tx-8',
+          description: 'Coffee Again',
+          amount: 260,
+          type: 'payment',
+          status: 'completed',
+          date: '2025-04-15T11:30:00Z',
+          cardId: 'card-1',
+          cardName: 'My Primary Card',
+          merchant: 'Starbucks',
+          location: 'Mumbai',
+          userId: '1',
+          currency: 'INR'
         }
       ];
       
       localStorage.setItem('transactions', JSON.stringify([...parsedTransactions, ...sampleTransactions]));
+      console.log("Added sample transactions to help AI insights");
     }
   }
 };

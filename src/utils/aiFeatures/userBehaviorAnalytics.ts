@@ -109,11 +109,15 @@ export const analyzeSpendingPatterns = (transactions: Transaction[]): SpendingIn
   // Calculate average spending across all transactions
   const totalSpent = paymentTransactions.reduce((sum, t) => sum + t.amount, 0);
   const averageSpending = totalSpent / paymentTransactions.length;
+  console.log(`Average spending calculation: Total: ${totalSpent}, Count: ${paymentTransactions.length}, Average: ${averageSpending}`);
   
   // Get the most recent transaction
   const latestTransaction = paymentTransactions.sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   )[0];
+  
+  console.log(`Latest transaction: ${JSON.stringify(latestTransaction)}`);
+  console.log(`Threshold check: ${latestTransaction.amount} > ${averageSpending * 2} = ${latestTransaction.amount > averageSpending * 2}`);
   
   // Check if the most recent transaction exceeds twice the average
   if (latestTransaction.amount > averageSpending * 2) {
@@ -130,7 +134,10 @@ export const getTopMerchantInsight = (transactions: Transaction[]): SpendingInsi
   // Filter only payment transactions with merchants
   const merchantTransactions = transactions.filter(t => t.type === "payment" && t.merchant);
   
-  if (merchantTransactions.length < 2) return null;
+  if (merchantTransactions.length < 2) {
+    console.log("Not enough merchant transactions for insight");
+    return null;
+  }
   
   // Count transactions by merchant
   const merchantCounts: Record<string, { count: number, total: number }> = {};
@@ -143,14 +150,21 @@ export const getTopMerchantInsight = (transactions: Transaction[]): SpendingInsi
     merchantCounts[t.merchant!].total += t.amount;
   });
   
+  console.log("Merchant counts:", merchantCounts);
+  
   // Find the merchant with the most transactions
   const topMerchantEntry = Object.entries(merchantCounts)
     .sort((a, b) => b[1].count - a[1].count)[0];
   
-  if (!topMerchantEntry) return null;
+  if (!topMerchantEntry) {
+    console.log("No top merchant found");
+    return null;
+  }
   
   const [merchantName, data] = topMerchantEntry;
   const averageAmount = data.total / data.count;
+  
+  console.log(`Top merchant: ${merchantName}, Count: ${data.count}, Total: ${data.total}, Avg: ${averageAmount}`);
   
   return {
     type: "pattern",
