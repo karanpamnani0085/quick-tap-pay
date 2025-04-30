@@ -10,7 +10,9 @@ import {
 import { 
   generateLocationInsights,
   generateMonthlyInsights,
-  getTopMerchants
+  getTopMerchants,
+  analyzeSpendingPatterns,
+  getTopMerchantInsight
 } from "@/utils/aiFeatures/userBehaviorAnalytics";
 
 export interface AIInsight {
@@ -97,6 +99,18 @@ export const aiService = {
         });
       }
     }
+    
+    // Check for spending patterns that exceed twice the average
+    const spendingPatternInsight = analyzeSpendingPatterns(userTransactions);
+    if (spendingPatternInsight) {
+      aiService.addInsight({
+        userId: transaction.userId,
+        type: "spending",
+        title: "Unusual Spending Detected",
+        description: spendingPatternInsight.message,
+        severity: "medium"
+      });
+    }
   },
   
   generateRecommendations: (userId: string): void => {
@@ -143,6 +157,30 @@ export const aiService = {
           description: insight.message,
           severity: insight.difference && Math.abs(insight.difference) > 20 ? "medium" : "low"
         });
+      });
+    }
+    
+    // Generate top merchant insight
+    const topMerchantInsight = getTopMerchantInsight(paymentTransactions);
+    if (topMerchantInsight) {
+      aiService.addInsight({
+        userId,
+        type: "behavior",
+        title: "Your Top Merchant",
+        description: topMerchantInsight.message,
+        severity: "low"
+      });
+    }
+    
+    // Analyze spending patterns
+    const spendingPatternInsight = analyzeSpendingPatterns(paymentTransactions);
+    if (spendingPatternInsight) {
+      aiService.addInsight({
+        userId,
+        type: "spending",
+        title: "Unusual Spending Detected",
+        description: spendingPatternInsight.message,
+        severity: "medium"
       });
     }
     

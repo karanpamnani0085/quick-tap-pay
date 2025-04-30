@@ -6,7 +6,7 @@ import { aiService, AIInsight } from "@/services/aiService";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { BadgeCheck, AlertTriangle, RefreshCw, ChevronRight, ShieldAlert, Lightbulb, TrendingUp } from "lucide-react";
+import { BadgeCheck, AlertTriangle, RefreshCw, ChevronRight, ShieldAlert, Lightbulb, TrendingUp, Info } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { dbService } from "@/services/dbService";
@@ -85,7 +85,7 @@ const AIInsights = () => {
       case "behavior":
         return severity === "high" ? 
           <AlertTriangle className="h-5 w-5 text-orange-500" /> : 
-          <BadgeCheck className="h-5 w-5 text-green-500" />;
+          <Info className="h-5 w-5 text-green-500" />;
       default:
         return <Lightbulb className="h-5 w-5 text-blue-500" />;
     }
