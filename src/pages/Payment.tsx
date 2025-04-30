@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -114,8 +115,13 @@ const Payment = () => {
       setEnteredPin("");
       setIsPinDialogOpen(true);
     } else {
-      // No PIN set, proceed with payment
-      proceedWithPayment(paymentAmount, selectedCard);
+      // No PIN set, prompt user to create one
+      toast({
+        title: "PIN Required",
+        description: "You need to set up a PIN for secure payments. Please visit your Account page.",
+        variant: "destructive"
+      });
+      navigate("/account");
     }
   };
 
