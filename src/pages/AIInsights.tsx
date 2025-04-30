@@ -20,6 +20,8 @@ const AIInsights = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [refreshing, setRefreshing] = useState(false);
   const { toast } = useToast();
+  const [topMerchant, setTopMerchant] = useState("");
+  const [favShop, setFavShop] = useState("");
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -28,6 +30,7 @@ const AIInsights = () => {
     }
 
     loadInsights();
+    findTopShop();
   }, [isAuthenticated, navigate]);
 
   const loadInsights = () => {
@@ -38,6 +41,62 @@ const AIInsights = () => {
       console.log("Retrieved insights:", userInsights);
       setInsights(userInsights);
       setIsLoading(false);
+    }
+  };
+
+  const findTopShop = () => {
+    if (user) {
+      // Get cart data from localStorage
+      const cartData = localStorage.getItem('cartItems');
+      if (cartData) {
+        const cartItems = JSON.parse(cartData);
+        
+        // Count items by shop
+        const shopCounts: Record<string, number> = {};
+        cartItems.forEach((item: any) => {
+          if (item.shopName) {
+            shopCounts[item.shopName] = (shopCounts[item.shopName] || 0) + item.quantity;
+          }
+        });
+        
+        // Find shop with most items
+        let maxCount = 0;
+        let topShop = "";
+        Object.entries(shopCounts).forEach(([shop, count]) => {
+          if (count > maxCount) {
+            maxCount = count;
+            topShop = shop;
+          }
+        });
+        
+        if (topShop) {
+          setFavShop(topShop);
+        }
+      }
+      
+      // Get top merchant from transactions
+      const transactions = dbService.getTransactionsByUserId(user.id);
+      if (transactions && transactions.length > 0) {
+        const merchantCounts: Record<string, number> = {};
+        transactions.forEach(t => {
+          if (t.merchant) {
+            merchantCounts[t.merchant] = (merchantCounts[t.merchant] || 0) + 1;
+          }
+        });
+        
+        let maxCount = 0;
+        let topMerchant = "";
+        Object.entries(merchantCounts).forEach(([merchant, count]) => {
+          if (count > maxCount) {
+            maxCount = count;
+            topMerchant = merchant;
+          }
+        });
+        
+        if (topMerchant) {
+          setTopMerchant(topMerchant);
+        }
+      }
     }
   };
 
@@ -55,6 +114,7 @@ const AIInsights = () => {
       // Add a small delay to simulate processing
       setTimeout(() => {
         loadInsights();
+        findTopShop();
         setRefreshing(false);
         toast({
           title: "Analysis Complete",
@@ -132,12 +192,43 @@ const AIInsights = () => {
         </Button>
       </div>
 
+      {/* Top merchant and favorite shop section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <Card className="border-left-4 border-l-rfid-teal">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Top Transaction Merchant</CardTitle>
+            <CardDescription>Based on your transaction history</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-700">
+              {topMerchant ? (
+                <span>Your most frequent transaction merchant is <strong>{topMerchant}</strong></span>
+              ) : (
+                "Make more transactions to see your top merchant!"
+              )}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border-left-4 border-l-rfid-blue">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Favorite Food Shop</CardTitle>
+            <CardDescription>Based on your ordering history</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-700">
+              {favShop ? (
+                <span>You order most frequently from <strong>{favShop}</strong></span>
+              ) : (
+                "Place more orders to see your favorite shop!"
+              )}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+      
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-6">
-        <TabsList className="grid grid-cols-4 mb-4">
+        <TabsList className="grid grid-cols-1 mb-4">
           <TabsTrigger value="all">All Insights</TabsTrigger>
-          <TabsTrigger value="fraud">Security</TabsTrigger>
-          <TabsTrigger value="spending">Spending</TabsTrigger>
-          <TabsTrigger value="recommendation">Recommendations</TabsTrigger>
         </TabsList>
       </Tabs>
 

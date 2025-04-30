@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Wallet, CreditCard, History, Home, Menu, X, User, LogOut } from "lucide-react";
+import { Wallet, CreditCard, History, Home, Menu, X, User, LogOut, Lightbulb } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoginModal } from "./auth/LoginModal";
 import { SignupModal } from "./auth/SignupModal";
@@ -25,6 +25,7 @@ const Navbar = () => {
     { name: "My Cards", path: "/cards", icon: <CreditCard size={20} /> },
     { name: "Payments", path: "/payments", icon: <History size={20} /> },
     { name: "Account", path: "/account", icon: <User size={20} /> },
+    { name: "AI Insights", path: "/ai-insights", icon: <Lightbulb size={20} /> },
   ];
 
   const handleLoginClick = () => {
