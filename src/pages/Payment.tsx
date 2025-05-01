@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Nfc, Check, CreditCard, Lock, IndianRupee } from "lucide-react";
+import { Nfc, Check, CreditCard, Lock, IndianRupee, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +11,7 @@ import { dbService } from "@/services/dbService";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Payment = () => {
   const { toast } = useToast();
@@ -32,6 +32,8 @@ const Payment = () => {
     cardId: string;
     card: any;
   } | null>(null);
+  const [showSpendingAlert, setShowSpendingAlert] = useState(false);
+  const [spendingMessage, setSpendingMessage] = useState("");
 
   // Get amount from query parameter if present
   useEffect(() => {
@@ -125,18 +127,23 @@ const Payment = () => {
     }
   };
 
-  const verifyPinAndPay = () => {
-    if (enteredPin === user?.pin) {
-      setIsPinDialogOpen(false);
-      
-      if (pendingPayment) {
-        proceedWithPayment(pendingPayment.amount, pendingPayment.card);
-        setPendingPayment(null);
-      }
-    } else {
-      setPinError("Incorrect PIN. Please try again.");
-      setEnteredPin("");
+  const checkSpendingPattern = (paymentAmount: number) => {
+    if (!user) return false;
+    
+    const transactions = dbService.getTransactionsByUserId(user.id)
+      .filter(t => t.type === "payment");
+    
+    if (transactions.length < 3) return false;
+    
+    const totalSpent = transactions.reduce((sum, t) => sum + t.amount, 0);
+    const averageSpending = totalSpent / transactions.length;
+    
+    if (paymentAmount > averageSpending * 2) {
+      setSpendingMessage(`This payment of ₹${paymentAmount.toFixed(2)} is more than double your average spending of ₹${averageSpending.toFixed(2)} per transaction`);
+      return true;
     }
+    
+    return false;
   };
 
   const proceedWithPayment = (paymentAmount: number, selectedCard: any) => {
@@ -177,6 +184,10 @@ const Payment = () => {
           
           // Update local cards state
           setCards(cards.map(c => c.id === selectedCard.id ? updatedCard : c));
+          
+          // Check if spending is more than double average
+          const isHighSpending = checkSpendingPattern(paymentAmount);
+          setShowSpendingAlert(isHighSpending);
         }
         
         setIsProcessing(false);
@@ -197,6 +208,7 @@ const Payment = () => {
   const handleReset = () => {
     setIsComplete(false);
     setAmount("");
+    setShowSpendingAlert(false);
     
     // If we came from cart, navigate back to cart
     if (searchParams.get("from") === "cart") {
@@ -350,6 +362,16 @@ const Payment = () => {
               </div>
               <h2 className="text-xl font-bold text-green-800 mb-1">Payment Successful!</h2>
               <p className="text-green-600 mb-4">Your payment has been processed</p>
+              
+              {showSpendingAlert && (
+                <Alert className="mb-4 border-amber-200 bg-amber-50">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <AlertTitle className="text-amber-800">High Spending Alert</AlertTitle>
+                  <AlertDescription className="text-amber-700">
+                    {spendingMessage}
+                  </AlertDescription>
+                </Alert>
+              )}
               
               <div className="bg-white rounded-lg p-4 mb-4 text-left">
                 <div className="flex justify-between items-center mb-2">

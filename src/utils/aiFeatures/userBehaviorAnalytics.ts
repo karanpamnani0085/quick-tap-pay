@@ -171,3 +171,47 @@ export const getTopMerchantInsight = (transactions: Transaction[]): SpendingInsi
     message: `Your top merchant is ${merchantName} with ${data.count} transactions. You've spent ₹${data.total.toFixed(2)} there, averaging ₹${averageAmount.toFixed(2)} per visit`
   };
 };
+
+export const getFavoriteShopInsight = (): {shopName: string, count: number} | null => {
+  // Get cart data from localStorage
+  const cartData = localStorage.getItem('cartItems');
+  
+  if (!cartData) return null;
+  
+  try {
+    const cartItems = JSON.parse(cartData);
+    
+    if (!Array.isArray(cartItems) || cartItems.length === 0) return null;
+    
+    // Count items by shop
+    const shopCounts: Record<string, number> = {};
+    
+    cartItems.forEach((item: any) => {
+      if (item.shopName) {
+        shopCounts[item.shopName] = (shopCounts[item.shopName] || 0) + (item.quantity || 1);
+      }
+    });
+    
+    // Find shop with most items
+    let maxCount = 0;
+    let topShop = "";
+    
+    Object.entries(shopCounts).forEach(([shop, count]) => {
+      if (count > maxCount) {
+        maxCount = count;
+        topShop = shop;
+      }
+    });
+    
+    if (topShop) {
+      return {
+        shopName: topShop,
+        count: maxCount
+      };
+    }
+  } catch (error) {
+    console.error("Error analyzing cart data:", error);
+  }
+  
+  return null;
+};

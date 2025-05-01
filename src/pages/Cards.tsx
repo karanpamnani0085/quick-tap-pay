@@ -35,6 +35,10 @@ const Cards = () => {
     name: "",
     isActive: true
   });
+  
+  const [topUpAmount, setTopUpAmount] = useState<number>(0);
+  const [customAmount, setCustomAmount] = useState<string>("");
+  const [customAmountError, setCustomAmountError] = useState<string>("");
 
   // Load cards when component mounts or user changes
   useEffect(() => {
@@ -89,6 +93,16 @@ const Cards = () => {
   const handleTopUp = (id: string, amount: number) => {
     if (!user) return;
     
+    // Validate amount is not greater than 1000
+    if (amount > 1000) {
+      toast({
+        title: "Amount Exceeded",
+        description: "Top-up amount cannot exceed ₹1,000 in a single transaction.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const updatedCard = dbService.updateCard(id, { 
       balance: (cards.find(card => card.id === id)?.balance || 0) + amount,
       lastUsed: new Date().toISOString()
@@ -118,6 +132,44 @@ const Cards = () => {
         description: `Successfully added ₹${amount.toFixed(2)} to your card.`,
         variant: "default",
       });
+      
+      // Reset custom amount fields
+      setCustomAmount("");
+      setTopUpAmount(0);
+    }
+  };
+
+  const validateCustomAmount = (value: string): boolean => {
+    const numValue = parseFloat(value);
+    setCustomAmountError("");
+    
+    if (isNaN(numValue)) {
+      setCustomAmountError("Please enter a valid number");
+      return false;
+    }
+    
+    if (numValue <= 0) {
+      setCustomAmountError("Amount must be greater than zero");
+      return false;
+    }
+    
+    if (numValue > 1000) {
+      setCustomAmountError("Amount cannot exceed ₹1,000");
+      return false;
+    }
+    
+    return true;
+  };
+  
+  const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9.]/g, '');
+    setCustomAmount(value);
+    validateCustomAmount(value);
+  };
+
+  const handleCustomTopUp = (cardId: string) => {
+    if (validateCustomAmount(customAmount)) {
+      handleTopUp(cardId, parseFloat(customAmount));
     }
   };
 
@@ -260,20 +312,39 @@ const Cards = () => {
                     <DialogHeader>
                       <DialogTitle>Top Up Card Balance</DialogTitle>
                       <DialogDescription>
-                        Select an amount to add to your card balance.
+                        Select an amount or enter a custom amount to add to your card balance.
                       </DialogDescription>
                     </DialogHeader>
                     <div className="grid grid-cols-3 gap-4 py-4">
+                      <Button variant="outline" onClick={() => handleTopUp(card.id, 100)}>₹100</Button>
+                      <Button variant="outline" onClick={() => handleTopUp(card.id, 200)}>₹200</Button>
                       <Button variant="outline" onClick={() => handleTopUp(card.id, 500)}>₹500</Button>
-                      <Button variant="outline" onClick={() => handleTopUp(card.id, 1000)}>₹1000</Button>
-                      <Button variant="outline" onClick={() => handleTopUp(card.id, 2000)}>₹2000</Button>
                     </div>
-                    <DialogFooter className="flex justify-between">
-                      <Button variant="outline" onClick={() => handleTopUp(card.id, 5000)}>₹5000</Button>
-                      <Button className="bg-rfid-teal hover:bg-rfid-blue" onClick={() => handleTopUp(card.id, 1000)}>
-                        Add ₹1000
-                      </Button>
-                    </DialogFooter>
+                    <div className="space-y-4 py-4 border-t">
+                      <Label htmlFor="custom-amount">Custom Amount (Max ₹1,000)</Label>
+                      <div className="flex items-center space-x-2">
+                        <div className="relative flex-grow">
+                          <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
+                          <Input
+                            id="custom-amount"
+                            value={customAmount}
+                            onChange={handleCustomAmountChange}
+                            placeholder="Enter amount"
+                            className="pl-8"
+                          />
+                        </div>
+                        <Button 
+                          className="bg-rfid-teal hover:bg-rfid-blue"
+                          onClick={() => handleCustomTopUp(card.id)}
+                          disabled={!customAmount || !!customAmountError}
+                        >
+                          Add
+                        </Button>
+                      </div>
+                      {customAmountError && (
+                        <p className="text-red-500 text-sm">{customAmountError}</p>
+                      )}
+                    </div>
                   </DialogContent>
                 </Dialog>
                 <div>

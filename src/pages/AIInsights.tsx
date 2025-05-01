@@ -6,11 +6,12 @@ import { aiService, AIInsight } from "@/services/aiService";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { RefreshCw, ChevronRight, ShieldAlert, Lightbulb, TrendingUp, Info, AlertTriangle } from "lucide-react";
+import { RefreshCw, ChevronRight, Lightbulb, TrendingUp, Info, AlertTriangle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { dbService } from "@/services/dbService";
 import { useToast } from "@/hooks/use-toast"; 
+import { getFavoriteShopInsight } from "@/utils/aiFeatures/userBehaviorAnalytics";
 
 const AIInsights = () => {
   const { user, isAuthenticated } = useAuth();
@@ -22,6 +23,7 @@ const AIInsights = () => {
   const { toast } = useToast();
   const [topMerchant, setTopMerchant] = useState("");
   const [favShop, setFavShop] = useState("");
+  const [favShopCount, setFavShopCount] = useState(0);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -46,32 +48,11 @@ const AIInsights = () => {
 
   const findTopShop = () => {
     if (user) {
-      // Get cart data from localStorage
-      const cartData = localStorage.getItem('cartItems');
-      if (cartData) {
-        const cartItems = JSON.parse(cartData);
-        
-        // Count items by shop
-        const shopCounts: Record<string, number> = {};
-        cartItems.forEach((item: any) => {
-          if (item.shopName) {
-            shopCounts[item.shopName] = (shopCounts[item.shopName] || 0) + item.quantity;
-          }
-        });
-        
-        // Find shop with most items
-        let maxCount = 0;
-        let topShop = "";
-        Object.entries(shopCounts).forEach(([shop, count]) => {
-          if (count > maxCount) {
-            maxCount = count;
-            topShop = shop;
-          }
-        });
-        
-        if (topShop) {
-          setFavShop(topShop);
-        }
+      // Get favorite shop from cart history
+      const favoriteShop = getFavoriteShopInsight();
+      if (favoriteShop) {
+        setFavShop(favoriteShop.shopName);
+        setFavShopCount(favoriteShop.count);
       }
       
       // Get top merchant from transactions
@@ -79,7 +60,7 @@ const AIInsights = () => {
       if (transactions && transactions.length > 0) {
         const merchantCounts: Record<string, number> = {};
         transactions.forEach(t => {
-          if (t.merchant) {
+          if (t.merchant && t.type === "payment") {
             merchantCounts[t.merchant] = (merchantCounts[t.merchant] || 0) + 1;
           }
         });
@@ -111,10 +92,12 @@ const AIInsights = () => {
       // Run the full analysis
       aiService.runFullAnalysis(user.id);
       
+      // Update shop information
+      findTopShop();
+      
       // Add a small delay to simulate processing
       setTimeout(() => {
         loadInsights();
-        findTopShop();
         setRefreshing(false);
         toast({
           title: "Analysis Complete",
@@ -130,16 +113,13 @@ const AIInsights = () => {
   };
 
   const getFilteredInsights = () => {
-    if (activeTab === "all") {
-      return insights;
-    }
-    return insights.filter(insight => insight.type === activeTab);
+    return insights;
   };
 
   const getInsightIcon = (type: string, severity?: string) => {
     switch (type) {
       case "fraud":
-        return <ShieldAlert className="h-5 w-5 text-red-500" />;
+        return <AlertTriangle className="h-5 w-5 text-red-500" />;
       case "spending":
         return <TrendingUp className="h-5 w-5 text-blue-500" />;
       case "recommendation":
@@ -217,7 +197,7 @@ const AIInsights = () => {
           <CardContent>
             <p className="text-gray-700">
               {favShop ? (
-                <span>You order most frequently from <strong>{favShop}</strong></span>
+                <span>You order most frequently from <strong>{favShop}</strong> ({favShopCount} items)</span>
               ) : (
                 "Place more orders to see your favorite shop!"
               )}
