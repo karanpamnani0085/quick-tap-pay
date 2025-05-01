@@ -132,7 +132,7 @@ export const analyzeSpendingPatterns = (transactions: Transaction[]): SpendingIn
 
 export const getTopMerchantInsight = (transactions: Transaction[]): SpendingInsight | null => {
   // Filter only payment transactions with merchants
-  const merchantTransactions = transactions.filter(t => t.type === "payment" && t.merchant);
+  const merchantTransactions = transactions.filter(t => t.type === "payment" && t.merchant && t.merchant !== "QuickTapPay Demo");
   
   if (merchantTransactions.length < 2) {
     console.log("Not enough merchant transactions for insight");

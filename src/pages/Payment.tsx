@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { aiService } from "@/services/aiService";
 
 const Payment = () => {
   const { toast } = useToast();
@@ -138,6 +140,8 @@ const Payment = () => {
     const totalSpent = transactions.reduce((sum, t) => sum + t.amount, 0);
     const averageSpending = totalSpent / transactions.length;
     
+    console.log(`Checking spending pattern: Amount: ${paymentAmount}, Average: ${averageSpending}`);
+    
     if (paymentAmount > averageSpending * 2) {
       setSpendingMessage(`This payment of ₹${paymentAmount.toFixed(2)} is more than double your average spending of ₹${averageSpending.toFixed(2)} per transaction`);
       return true;
@@ -167,7 +171,7 @@ const Payment = () => {
             : "QuickTapPay Demo";
 
           // Record transaction
-          dbService.createTransaction({
+          const newTransaction = dbService.createTransaction({
             id: `tx-${Date.now()}`,
             description: searchParams.get("from") === "cart" ? "Food Purchase" : "Quick Payment",
             amount: paymentAmount,
@@ -184,6 +188,14 @@ const Payment = () => {
           
           // Update local cards state
           setCards(cards.map(c => c.id === selectedCard.id ? updatedCard : c));
+          
+          // Run AI analysis on the transaction
+          if (user && newTransaction) {
+            aiService.analyzeTransaction({
+              ...newTransaction,
+              userId: user.id
+            });
+          }
           
           // Check if spending is more than double average
           const isHighSpending = checkSpendingPattern(paymentAmount);
