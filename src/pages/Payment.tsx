@@ -201,6 +201,29 @@ const Payment = () => {
     }, 1500);
   };
 
+  const verifyPinAndPay = () => {
+    if (!user || !pendingPayment) return;
+    
+    // Check if entered PIN matches user's PIN
+    if (enteredPin !== user.pin) {
+      setPinError("Incorrect PIN. Please try again.");
+      return;
+    }
+    
+    // Close the PIN dialog
+    setIsPinDialogOpen(false);
+    setPinError("");
+    
+    // Proceed with payment if PIN is correct
+    proceedWithPayment(
+      pendingPayment.amount,
+      pendingPayment.card
+    );
+    
+    // Reset pending payment
+    setPendingPayment(null);
+  };
+
   const handleTapToPay = () => {
     initiatePayment();
   };
